@@ -9,7 +9,12 @@ let internals = {
     forum: Forum,
     game: game,
     scum: [],
-    myName: ''
+    myName: '',
+    timer: {
+        nextAlert: undefined,
+        callback: undefined,
+        handle: undefined
+    }
 }
 exports.internals = internals;
 
@@ -19,11 +24,12 @@ exports.internals = internals;
  * @returns {Promise} A promise that will resolve when the activation is complete
  */
 exports.activate = function activate() {
-    
+    internals.timer.handle = setInterval(timer, 10);
 }
 
 exports.deactivate = function deactivate() {
     internals.game = undefined;
+    clearInterval(internals.timer.handle);
     return Promise.resolve();
 }
 
@@ -44,7 +50,16 @@ exports.plugin = function plugin(forum, config) {
 }
 
 exports.setTimer = function setTimer(expires, callback) {
-    
+    internals.timer.callback = callback;
+    internals.timer.nextAlert = expires;
+    return Promise.resolve();
+}
+
+function timer() {
+    if (internals.timer.nextAlert && Moment().isSameOrAfter(internals.timer.nextAlert)) {
+        internals.timer.nextAlert = undefined;
+        internals.timer.callback();
+    }
 }
 
 

@@ -332,7 +332,7 @@ describe('AutoGM', () => {
 		
 	 });
 	 
-	 describe('onLynch', () => {
+	describe('onLynch', () => {
 	 	let fakeForum;
 		
 		beforeEach(() => {
@@ -387,7 +387,7 @@ describe('AutoGM', () => {
 		});
 	 });
 	 
-	 describe('checkWin', () => {
+	describe('checkWin', () => {
 	 	beforeEach(() => {
 			AutoGM.internals.game = {
 				livePlayers: [],
@@ -436,4 +436,37 @@ describe('AutoGM', () => {
 			AutoGM.checkWin().should.equal('Town');
 		});
 	});
-})
+
+	describe('setTimer', () => {
+		let clock;
+		
+		beforeEach(() => {
+			clock = sinon.useFakeTimers();
+			return AutoGM.activate();
+		});
+		
+		afterEach(() => {
+			clock.restore();
+			return AutoGM.deactivate();
+		});
+		
+		it('Should call the callback when the time passes', () => {
+			let callback = sandbox.stub().resolves();
+			
+			return AutoGM.setTimer(Moment().add(10, 'ms'), callback).then(() => {
+				clock.tick(20);
+				callback.should.have.been.called;
+			});
+		});
+		
+		it('Should not call the callback when the time has not yet passed', () => {
+			let callback = sandbox.stub().resolves();
+			
+			return AutoGM.setTimer(Moment().add(1000, 'ms'), callback).then(() => {
+				clock.tick(20);
+				callback.should.not.have.been.called;
+			});
+		});
+	});
+	
+});
