@@ -47,7 +47,8 @@ describe('AutoGM', () => {
                 }
             }
             
-            AutoGM.plugin(fakeForum);
+            AutoGM.internals.game = fakeGame;
+            AutoGM.internals.forum = fakeForum;
         });
         
         beforeEach(() => {
@@ -104,11 +105,12 @@ describe('AutoGM', () => {
                 }
             }
             
-            AutoGM.plugin(fakeForum);
+            AutoGM.internals.forum = fakeForum;
             
-            AutoGM.game = {
+            AutoGM.internals.game = {
                 livePlayers: [],
-                newDay: () => Promise.resolve()
+                newDay: () => Promise.resolve(),
+                topicID: 123
             }
         });
         
@@ -120,19 +122,21 @@ describe('AutoGM', () => {
         });
         
         it('Should start day 1 with 12 players', () => {
-            AutoGM.game.livePlayers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve']
+            AutoGM.internals.game.livePlayers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve']
             sandbox.spy(AutoGM, 'deactivate');
-            sandbox.spy(AutoGM.game, 'newDay');
+            sandbox.spy(AutoGM.internals.game, 'newDay');
+            sandbox.spy(fakeForum.Post, 'reply');
             sandbox.stub(AutoGM, 'setTimer').resolves();
             
             return AutoGM.startGame().then(() => {
                 AutoGM.deactivate.should.not.have.been.called;
-                AutoGM.game.newDay.should.have.been.called;
+                AutoGM.internals.game.newDay.should.have.been.called;
+                fakeForum.Post.reply.should.have.been.called;
             });
         });
         
         it('Should chill for three days', () => {
-            AutoGM.game.livePlayers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve']
+            AutoGM.internals.game.livePlayers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve']
             sandbox.stub(AutoGM, 'setTimer').resolves();
             const expected = Moment().add(72, 'hours');
             
@@ -143,4 +147,25 @@ describe('AutoGM', () => {
             });
         });
     });
+    
+     describe('onDayEnd', () => {
+        let fakeForum;
+        
+        before(() => {
+            fakeForum = {
+                Post: {
+                    reply: () => Promise.resolve()
+                }
+            }
+            
+            AutoGM.plugin(fakeForum);
+            
+            AutoGM.internals.game = {
+                livePlayers: [],
+                newDay: () => Promise.resolve(),
+                topicID: 123
+            }
+        });
+        
+     });
 })
