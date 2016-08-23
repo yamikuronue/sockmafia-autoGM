@@ -64,7 +64,21 @@ exports.init = function() {
 }
 
 exports.startGame = function() {
-    if (internals.game.livePlayers.length > 0) {
+    let players = internals.game.livePlayers;
+    
+    if (players.length > 5) {
+        //Pick scum
+        internals.scum.push(players[0].username);
+        internals.scum.push(players[1].username);
+        
+        if (players.length > 7) {
+            internals.scum.push(players[2].username);
+        }
+        
+        if (players.length > 10) {
+            internals.scum.push(players[3].username);
+        }
+        
         return internals.game.newDay()
             .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'Let the game begin!'))
             .then(() => exports.setTimer(Moment().add(72, 'hours'), exports.onDayEnd));

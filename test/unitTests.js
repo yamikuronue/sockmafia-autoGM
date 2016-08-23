@@ -118,6 +118,12 @@ describe('AutoGM', () => {
 			}
 		});
 		
+		function player(p) {
+			return {
+				username: p
+			}
+		}
+		
 		it('Should deactivate with 0 players', () => {
 			sandbox.stub(AutoGM, 'deactivate').resolves();
 			return AutoGM.startGame().then(() => {
@@ -125,8 +131,16 @@ describe('AutoGM', () => {
 			});
 		});
 		
-		it('Should start day 1 with 12 players', () => {
-			AutoGM.internals.game.livePlayers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve']
+		it('Should deactivate with 5 players', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five')]
+			sandbox.stub(AutoGM, 'deactivate').resolves();
+			return AutoGM.startGame().then(() => {
+				AutoGM.deactivate.should.have.been.called;
+			});
+		});		
+		
+		it('Should start day 1 with 6 players', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')]
 			sandbox.spy(AutoGM, 'deactivate');
 			sandbox.spy(AutoGM.internals.game, 'newDay');
 			sandbox.spy(fakeForum.Post, 'reply');
@@ -136,6 +150,42 @@ describe('AutoGM', () => {
 				AutoGM.deactivate.should.not.have.been.called;
 				AutoGM.internals.game.newDay.should.have.been.called;
 				fakeForum.Post.reply.should.have.been.called;
+			});
+		});
+		
+		it('Should assign 2 scum with 6 players', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')]
+			sandbox.stub(AutoGM, 'setTimer').resolves();
+			
+			return AutoGM.startGame().then(() => {
+				AutoGM.internals.scum.should.include('one');
+				AutoGM.internals.scum.should.include('two');
+				AutoGM.internals.scum.should.not.include('three');
+			});
+		});
+		
+		it('Should assign 3 scum with 8 players', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight')]
+			sandbox.stub(AutoGM, 'setTimer').resolves();
+			
+			return AutoGM.startGame().then(() => {
+				AutoGM.internals.scum.should.include('one');
+				AutoGM.internals.scum.should.include('two');
+				AutoGM.internals.scum.should.include('three');
+				AutoGM.internals.scum.should.not.include('four');
+			});
+		});
+		
+		it('Should assign 4 scum with 11 players', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight'), player('nine'), player('ten'), player('eleven')]
+			sandbox.stub(AutoGM, 'setTimer').resolves();
+			
+			return AutoGM.startGame().then(() => {
+				AutoGM.internals.scum.should.include('one');
+				AutoGM.internals.scum.should.include('two');
+				AutoGM.internals.scum.should.include('three');
+				AutoGM.internals.scum.should.include('four');
+				AutoGM.internals.scum.should.not.include('five');
 			});
 		});
 		
