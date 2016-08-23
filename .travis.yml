@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+- '4'
+- '5'
+- '6'
+env:
+  global:
+    service_name: travis-ci	
+notifications:
+  slack: sockdrawer:6bn0VFi2HhWot4A7bwO5FVW5
