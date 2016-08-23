@@ -35,12 +35,12 @@ describe('AutoGM', () => {
 			fakeDao = {
 				getGameById: () => Promise.resolve(fakeGame),
 				createGame: () => Promise.resolve(fakeGame)
-			}
+			};
 			SockMafia.internals.dao = fakeDao;
 			
 			fakeTopic = {
 				watch: () => Promise.resolve()
-			}
+			};
 			
 			fakeForum = {
 				Post: {
@@ -49,7 +49,7 @@ describe('AutoGM', () => {
 				Topic: {
 					get: () => fakeTopic
 				}
-			}
+			};
 			
 			AutoGM.internals.game = fakeGame;
 			AutoGM.internals.forum = fakeForum;
@@ -107,7 +107,7 @@ describe('AutoGM', () => {
 				Post: {
 					reply: () => Promise.resolve()
 				}
-			}
+			};
 			
 			AutoGM.internals.forum = fakeForum;
 			
@@ -115,13 +115,13 @@ describe('AutoGM', () => {
 				livePlayers: [],
 				newDay: () => Promise.resolve(),
 				topicID: 123
-			}
+			};
 		});
 		
 		function player(p) {
 			return {
 				username: p
-			}
+			};
 		}
 		
 		it('Should deactivate with 0 players', () => {
@@ -132,7 +132,7 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should deactivate with 5 players', () => {
-			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five')]
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five')];
 			sandbox.stub(AutoGM, 'deactivate').resolves();
 			return AutoGM.startGame().then(() => {
 				AutoGM.deactivate.should.have.been.called;
@@ -140,7 +140,7 @@ describe('AutoGM', () => {
 		});		
 		
 		it('Should start day 1 with 6 players', () => {
-			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')]
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
 			sandbox.spy(AutoGM, 'deactivate');
 			sandbox.spy(AutoGM.internals.game, 'newDay');
 			sandbox.spy(fakeForum.Post, 'reply');
@@ -154,7 +154,7 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should assign 2 scum with 6 players', () => {
-			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')]
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			
 			return AutoGM.startGame().then(() => {
@@ -165,7 +165,7 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should assign 3 scum with 8 players', () => {
-			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight')]
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight')];
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			
 			return AutoGM.startGame().then(() => {
@@ -177,7 +177,7 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should assign 4 scum with 11 players', () => {
-			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight'), player('nine'), player('ten'), player('eleven')]
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight'), player('nine'), player('ten'), player('eleven')];
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			
 			return AutoGM.startGame().then(() => {
@@ -190,7 +190,7 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should chill for three days', () => {
-			AutoGM.internals.game.livePlayers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve']
+			AutoGM.internals.game.livePlayers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			const expected = Moment().add(72, 'hours');
 			
@@ -210,7 +210,7 @@ describe('AutoGM', () => {
 				Post: {
 					reply: () => Promise.resolve()
 				}
-			}
+			};
 			
 			AutoGM.plugin(fakeForum);
 			
@@ -219,7 +219,7 @@ describe('AutoGM', () => {
 				newDay: () => Promise.resolve(),
 				nextPhase: () => Promise.resolve(),
 				topicID: 123
-			}
+			};
 		});
 		
 		it('Should move to night', () => {
@@ -246,9 +246,8 @@ describe('AutoGM', () => {
 				Moment(actual).isSameOrAfter(expected).should.be.true;
 			});
 		});
-		
-	 });
-	 
+	});
+
 	describe('onNightEnd', () => {
 		let fakeForum;
 		
@@ -257,7 +256,7 @@ describe('AutoGM', () => {
 				Post: {
 					reply: () => Promise.resolve()
 				}
-			}
+			};
 			
 			AutoGM.plugin(fakeForum);
 			
@@ -266,7 +265,7 @@ describe('AutoGM', () => {
 				newDay: () => Promise.resolve(),
 				nextPhase: () => Promise.resolve(),
 				topicID: 123
-			}
+			};
 		});
 		
 		it('Should check for a win', () => {
@@ -330,17 +329,17 @@ describe('AutoGM', () => {
 			});
 		});
 		
-	 });
-	 
+	});
+
 	describe('onLynch', () => {
-	 	let fakeForum;
+		let fakeForum;
 		
 		beforeEach(() => {
 			fakeForum = {
 				Post: {
 					reply: () => Promise.resolve()
 				}
-			}
+			};
 			
 			AutoGM.plugin(fakeForum);
 			
@@ -349,10 +348,10 @@ describe('AutoGM', () => {
 				newDay: () => Promise.resolve(),
 				nextPhase: () => Promise.resolve(),
 				topicID: 123
-			}
+			};
 		});
 		
-	 	it('Should post if town Won', () => {
+		it('Should post if town Won', () => {
 			sandbox.stub(AutoGM, 'checkWin').returns('Town');
 			sandbox.spy(fakeForum.Post, 'reply');
 			return AutoGM.onLynch().then(() => {
@@ -385,16 +384,16 @@ describe('AutoGM', () => {
 				AutoGM.onDayEnd.should.have.been.called;
 			});
 		});
-	 });
-	 
+	});
+
 	describe('checkWin', () => {
-	 	beforeEach(() => {
+		beforeEach(() => {
 			AutoGM.internals.game = {
 				livePlayers: [],
 				newDay: () => Promise.resolve(),
 				nextPhase: () => Promise.resolve(),
 				topicID: 123
-			}
+			};
 		});
 		
 		it('Should return Scum when the scum equal the town', () => {
@@ -413,7 +412,8 @@ describe('AutoGM', () => {
 		it('Should return Scum when the scum outnumber the town', () => {
 			AutoGM.internals.game.livePlayers = [{
 				username: 'scum1'
-			},{
+			},
+			{
 				username: 'scum2'
 			},
 			{
@@ -451,7 +451,7 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should call the callback when the time passes', () => {
-			let callback = sandbox.stub().resolves();
+			const callback = sandbox.stub().resolves();
 			
 			return AutoGM.setTimer(Moment().add(10, 'ms'), callback).then(() => {
 				clock.tick(20);
@@ -460,7 +460,7 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should not call the callback when the time has not yet passed', () => {
-			let callback = sandbox.stub().resolves();
+			const callback = sandbox.stub().resolves();
 			
 			return AutoGM.setTimer(Moment().add(1000, 'ms'), callback).then(() => {
 				clock.tick(20);

@@ -5,7 +5,7 @@ const Moment = require('moment');
 
 let Forum, game;
 
-let internals = {
+const internals = {
     forum: Forum,
     game: game,
     scum: [],
@@ -15,7 +15,7 @@ let internals = {
         callback: undefined,
         handle: undefined
     }
-}
+};
 exports.internals = internals;
 
 
@@ -25,13 +25,13 @@ exports.internals = internals;
  */
 exports.activate = function activate() {
     internals.timer.handle = setInterval(timer, 10);
-}
+};
 
 exports.deactivate = function deactivate() {
     internals.game = undefined;
     clearInterval(internals.timer.handle);
     return Promise.resolve();
-}
+};
 
 
 /**
@@ -47,13 +47,13 @@ exports.plugin = function plugin(forum, config) {
 		activate: exports.activate,
 		deactivate: () => exports.deactivate
 	};
-}
+};
 
 exports.setTimer = function setTimer(expires, callback) {
     internals.timer.callback = callback;
     internals.timer.nextAlert = expires;
     return Promise.resolve();
-}
+};
 
 function timer() {
     if (internals.timer.nextAlert && Moment().isSameOrAfter(internals.timer.nextAlert)) {
@@ -76,10 +76,10 @@ exports.init = function() {
         .then(() => internals.game.addModerator(internals.myName))
         .then(() => internals.forum.Post.reply(threadID, undefined, 'Signups are now open!\n To join the game, please type `!join`.'))
         .then(() => exports.setTimer(Moment().add(48, 'hours'), exports.startGame));
-}
+};
 
 exports.startGame = function() {
-    let players = internals.game.livePlayers;
+    const players = internals.game.livePlayers;
     
     if (players.length > 5) {
         //Pick scum
@@ -100,14 +100,14 @@ exports.startGame = function() {
     } else {
         return exports.deactivate();
     }
-}
+};
 
 
 exports.onDayEnd = function() {
     return internals.game.nextPhase()
     .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'It is now night'))
     .then(() => exports.setTimer(Moment().add(24, 'hours'), exports.onNightEnd));
-}
+};
 
 exports.onLynch = function() {
     const won = exports.checkWin();
@@ -118,7 +118,7 @@ exports.onLynch = function() {
     } else {
         return exports.onDayEnd();
     }
-}
+};
 
 exports.onNightEnd = function() {
     const won = exports.checkWin();
@@ -131,13 +131,13 @@ exports.onNightEnd = function() {
         .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'It is now day'))
         .then(() => exports.setTimer(Moment().add(72, 'hours'), exports.onNightEnd));
     }
-}
+};
 
 exports.checkWin = function() {
     let scum = 0; 
     let town = 0;
 
-    let players = internals.game.livePlayers;
+    const players = internals.game.livePlayers;
     for (let i = 0; i < players.length; i++ ) {
         if (internals.scum.indexOf(players[i].username) > -1) {
             scum++;
@@ -155,4 +155,4 @@ exports.checkWin = function() {
     }
     
     return false;
-}
+};
