@@ -89,7 +89,57 @@ describe('AutoGM', () => {
             return AutoGM.init().then(() => {
                 AutoGM.setTimer.should.have.been.called;
                 const actual = AutoGM.setTimer.firstCall.args[0];
-                Moment(actual).isAfter(expected).should.be.true;
+                Moment(actual).isSameOrAfter(expected).should.be.true;
+            });
+        });
+    });
+    
+    describe('startGame', () => {
+        let fakeForum;
+        
+        before(() => {
+            fakeForum = {
+                Post: {
+                    reply: () => Promise.resolve()
+                }
+            }
+            
+            AutoGM.plugin(fakeForum);
+            
+            AutoGM.game = {
+                livePlayers: [],
+                newDay: () => Promise.resolve()
+            }
+        });
+        
+        it('Should deactivate with 0 players', () => {
+            sandbox.stub(AutoGM, 'deactivate').resolves();
+            return AutoGM.startGame().then(() => {
+                AutoGM.deactivate.should.have.been.called;
+            });
+        });
+        
+        it('Should start day 1 with 12 players', () => {
+            AutoGM.game.livePlayers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve']
+            sandbox.spy(AutoGM, 'deactivate');
+            sandbox.spy(AutoGM.game, 'newDay');
+            sandbox.stub(AutoGM, 'setTimer').resolves();
+            
+            return AutoGM.startGame().then(() => {
+                AutoGM.deactivate.should.not.have.been.called;
+                AutoGM.game.newDay.should.have.been.called;
+            });
+        });
+        
+        it('Should chill for three days', () => {
+            AutoGM.game.livePlayers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve']
+            sandbox.stub(AutoGM, 'setTimer').resolves();
+            const expected = Moment().add(72, 'hours');
+            
+            return AutoGM.startGame().then(() => {
+                AutoGM.setTimer.should.have.been.called;
+                const actual = AutoGM.setTimer.firstCall.args[0];
+                Moment(actual).isSameOrAfter(expected).should.be.true;
             });
         });
     });

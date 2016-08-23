@@ -5,6 +5,8 @@ const Moment = require('moment');
 
 let Forum, game;
 
+exports.game = game;
+
 /**
  * Sockbot 3.0 Activation function
  * @returns {Promise} A promise that will resolve when the activation is complete
@@ -15,6 +17,7 @@ exports.activate = function activate() {
 
 exports.deactivate = function deactivate() {
     game = undefined;
+    return Promise.resolve();
 }
 
 
@@ -44,7 +47,7 @@ exports.init = function() {
     const thread = Forum.Topic.get(threadID);
     
     return thread.watch().then(() => {
-        game = SockMafia.internals.dao.createGame(threadID);
+        exports.game = SockMafia.internals.dao.createGame(threadID);
         return Forum.Post.reply(threadID, undefined, 'Signups are now open!\n To join the game, please type `!join`.');
     })
     .then(() => exports.setTimer(Moment().add(48, 'hours'), exports.startGame));
@@ -53,7 +56,11 @@ exports.init = function() {
 }
 
 exports.startGame = function() {
-    
+    if (exports.game.livePlayers.length > 0) {
+        return exports.game.newDay().then(() => exports.setTimer(Moment().add(72, 'hours'), exports.onDayEnd));
+    } else {
+        return exports.deactivate();
+    }
 }
 
 
