@@ -22,9 +22,9 @@
   "dependencies": {
     "debug": "^2.2.0",
     "moment": "^2.14.1",
-    "sockmafia": "3.2.0"
+    "sockmafia": "sockdrawer/SockMafia#feature-autoGM"
   },
-   "peerDependencies": {
+  "peerDependencies": {
     "sockbot": "^4.3.0"
   },
   "devDependencies": {
