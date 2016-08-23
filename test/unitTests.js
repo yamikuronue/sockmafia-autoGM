@@ -435,6 +435,26 @@ describe('AutoGM', () => {
 			
 			AutoGM.checkWin().should.equal('Town');
 		});
+		
+		it('Should return false otherwise', () => {
+			AutoGM.internals.game.livePlayers = [
+			{
+				username: 'scum2'
+			},
+			{
+				username: 'town1'
+			},
+			{
+				username: 'town2'
+			},
+			{
+				username: 'town3'
+			}];
+			
+			AutoGM.internals.scum = ['scum1', 'scum2'];
+			
+			AutoGM.checkWin().should.be.false;
+		});
 	});
 
 	describe('setTimer', () => {
