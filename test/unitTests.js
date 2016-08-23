@@ -262,10 +262,35 @@ describe('AutoGM', () => {
 			
 			AutoGM.internals.game = {
 				livePlayers: [],
+				getActionOfType: () => null,
+				killPlayer: () => Promise.resolve(),
 				newDay: () => Promise.resolve(),
 				nextPhase: () => Promise.resolve(),
 				topicID: 123
 			};
+		});
+		
+		it('Should kill scum\'s pick', () => {
+			sandbox.stub(AutoGM.internals.game, 'getActionOfType').returns({
+				isCurrent: true,
+				target: 'johnny'
+			});
+			
+			sandbox.spy(AutoGM.internals.game, 'killPlayer');
+			sandbox.stub(AutoGM, 'checkWin').returns(false);
+			
+			return AutoGM.onNightEnd().then(() => {
+				AutoGM.internals.game.killPlayer.should.have.been.calledWith('johnny');
+			});
+		});
+		
+		it('Should not kill if scum missed the buzzer', () => {
+			sandbox.spy(AutoGM.internals.game, 'killPlayer');
+			sandbox.stub(AutoGM, 'checkWin').returns(false);
+			
+			return AutoGM.onNightEnd().then(() => {
+				AutoGM.internals.game.killPlayer.should.not.have.been.called;
+			});
 		});
 		
 		it('Should check for a win', () => {

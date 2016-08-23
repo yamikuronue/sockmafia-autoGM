@@ -121,6 +121,13 @@ exports.onLynch = function() {
 };
 
 exports.onNightEnd = function() {
+    const action = internals.game.getActionOfType('target', null, 'scum', null, false);
+	
+	if (action) {
+        //Kill the scum's pick
+        internals.game.killPlayer(action.target);
+	}
+				
     const won = exports.checkWin();
     
     if (won) {
