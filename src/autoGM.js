@@ -8,7 +8,8 @@ let Forum, game;
 let internals = {
     forum: Forum,
     game: game,
-    scum: []
+    scum: [],
+    myName: ''
 }
 exports.internals = internals;
 
@@ -22,7 +23,7 @@ exports.activate = function activate() {
 }
 
 exports.deactivate = function deactivate() {
-    game = undefined;
+    internals.game = undefined;
     return Promise.resolve();
 }
 
@@ -34,7 +35,7 @@ exports.deactivate = function deactivate() {
  * @returns {Object}        A temporary object representing this instance of the forum
  */
 exports.plugin = function plugin(forum, config) {
-    Forum = forum;
+    internals.forum = forum;
     
     return {
 		activate: exports.activate,
@@ -52,13 +53,14 @@ exports.init = function() {
     const threadID = 12345;
     const thread = internals.forum.Topic.get(threadID);
     
-    return thread.watch().then(() => {
-        internals.game = SockMafia.internals.dao.createGame(threadID);
-        return internals.forum.Post.reply(threadID, undefined, 'Signups are now open!\n To join the game, please type `!join`.');
-    })
-    .then(() => exports.setTimer(Moment().add(48, 'hours'), exports.startGame));
-    
-      
+    return thread.watch()
+        .then(() => SockMafia.internals.dao.createGame(threadID))
+        .then((g) => {
+            internals.game = g;
+        })
+        .then(() => internals.game.addModerator(internals.myName))
+        .then(() => internals.forum.Post.reply(threadID, undefined, 'Signups are now open!\n To join the game, please type `!join`.'))
+        .then(() => exports.setTimer(Moment().add(48, 'hours'), exports.startGame));
 }
 
 exports.startGame = function() {
@@ -77,7 +79,9 @@ exports.onNightEnd = function() {
 }
 
 exports.onDayEnd = function() {
-    
+    return internals.game.nextPhase()
+    .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'It is now night'))
+    .then(() => exports.setTimer(Moment().add(24, 'hours'), exports.onNightEnd));
 }
 
 exports.onLynch = function() {

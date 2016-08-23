@@ -28,6 +28,10 @@ describe('AutoGM', () => {
         let fakeDao, fakeGame, fakeForum, fakeTopic;
         
         before(() => {
+            fakeGame = {
+                addModerator: () => Promise.resolve()
+            };
+            
             fakeDao = {
                 getGameById: () => Promise.resolve(fakeGame),
                 createGame: () => Promise.resolve(fakeGame)
@@ -49,14 +53,7 @@ describe('AutoGM', () => {
             
             AutoGM.internals.game = fakeGame;
             AutoGM.internals.forum = fakeForum;
-        });
-        
-        beforeEach(() => {
-            return AutoGM.activate();
-        });
-        
-        afterEach(() => {
-           return AutoGM.deactivate(); 
+            AutoGM.internals.myName = 'aBot';
         });
         
         it('Should create a thread', () => {
@@ -74,6 +71,13 @@ describe('AutoGM', () => {
             sandbox.spy(fakeDao, 'createGame');
             return AutoGM.init().then(() => {
                 fakeDao.createGame.should.have.been.called;
+            });
+        });
+        
+        it('Should add itself as a mod', () => {
+            sandbox.spy(fakeGame, 'addModerator');
+            return AutoGM.init().then(() => {
+                fakeGame.addModerator.should.have.been.calledWith('aBot');
             });
         });
         
@@ -163,8 +167,34 @@ describe('AutoGM', () => {
             AutoGM.internals.game = {
                 livePlayers: [],
                 newDay: () => Promise.resolve(),
+                nextPhase: () => Promise.resolve(),
                 topicID: 123
             }
+        });
+        
+        it('Should move to night', () => {
+            sandbox.spy(AutoGM.internals.game, 'nextPhase');
+            return AutoGM.onDayEnd().then(() => {
+                AutoGM.internals.game.nextPhase.should.have.been.called;
+            });
+        });
+        
+        it('Should post in the thread', () => {
+            sandbox.spy(fakeForum.Post, 'reply');
+            return AutoGM.onDayEnd().then(() => {
+                fakeForum.Post.reply.should.have.been.called;
+            });
+        });
+        
+        it('Should chill for a day', () => {
+            sandbox.stub(AutoGM, 'setTimer').resolves();
+            const expected = Moment().add(24, 'hours');
+            
+            return AutoGM.onDayEnd().then(() => {
+                AutoGM.setTimer.should.have.been.called;
+                const actual = AutoGM.setTimer.firstCall.args[0];
+                Moment(actual).isSameOrAfter(expected).should.be.true;
+            });
         });
         
      });
