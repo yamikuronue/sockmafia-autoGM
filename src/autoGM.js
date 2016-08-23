@@ -74,10 +74,6 @@ exports.startGame = function() {
 }
 
 
-exports.onNightEnd = function() {
-    
-}
-
 exports.onDayEnd = function() {
     return internals.game.nextPhase()
     .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'It is now night'))
@@ -85,17 +81,49 @@ exports.onDayEnd = function() {
 }
 
 exports.onLynch = function() {
+    const won = exports.checkWin();
     
+    if (won) {
+        return internals.forum.Post.reply(internals.game.topicID, undefined, 'The game is over! ' + won + ' won!')
+            .then(() => exports.deactivate());
+    } else {
+        return exports.onDayEnd();
+    }
 }
 
 exports.onNightEnd = function() {
+    const won = exports.checkWin();
     
+    if (won) {
+        return internals.forum.Post.reply(internals.game.topicID, undefined, 'The game is over! ' + won + ' won!')
+            .then(() => exports.deactivate());
+    } else {
+        return internals.game.newDay()
+        .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'It is now day'))
+        .then(() => exports.setTimer(Moment().add(72, 'hours'), exports.onNightEnd));
+    }
 }
 
 exports.checkWin = function() {
-    
-}
+    let scum = 0; 
+    let town = 0;
 
-exports.endGame = function() {
+    let players = internals.game.livePlayers;
+    for (let i = 0; i < players.length; i++ ) {
+        if (internals.scum.indexOf(players[i].username) > -1) {
+            scum++;
+        } else {
+            town++;
+        }
+    }
     
+    if (scum >= town) {
+        return 'Scum';
+    }
+    
+    if (scum === 0) {
+        return 'Town';
+    }
+    
+    return false;
 }
