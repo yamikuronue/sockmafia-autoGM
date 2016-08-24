@@ -171,7 +171,7 @@ describe('AutoGM', () => {
 					get: () => fakeTopic
 				},
 				Category: {
-					get: () => fakeCat
+					get: () => Promise.resolve(fakeCat)
 				}
 			};
 			
@@ -230,9 +230,16 @@ describe('AutoGM', () => {
 		let fakeForum;
 		
 		before(() => {
+			const fakeRoom = {
+				send: () => Promise.resolve()
+			};
+			
 			fakeForum = {
 				Post: {
 					reply: () => Promise.resolve()
+				},
+				Chat: {
+					create: () => Promise.resolve(fakeRoom)
 				}
 			};
 			
@@ -241,7 +248,9 @@ describe('AutoGM', () => {
 			AutoGM.internals.game = {
 				livePlayers: [],
 				newDay: () => Promise.resolve(),
-				topicID: 123
+				topicID: 123,
+				moderators: [],
+				addChat: () => 1
 			};
 		});
 		
@@ -313,6 +322,15 @@ describe('AutoGM', () => {
 				AutoGM.internals.scum.should.include('three');
 				AutoGM.internals.scum.should.include('four');
 				AutoGM.internals.scum.should.not.include('five');
+			});
+		});
+		
+		it('Should send role cards', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
+			sandbox.spy(fakeForum.Chat, 'create');
+			
+			return AutoGM.startGame().then(() => {
+				fakeForum.Chat.create.should.have.callCount(6);
 			});
 		});
 		

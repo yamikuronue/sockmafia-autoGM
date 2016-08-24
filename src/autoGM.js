@@ -70,18 +70,22 @@ function timer() {
 exports.init = function() {
     //TODO: configurable category
     const cat = 22;
+    let threadID;
     
-    const category = internals.forum.Category.get(cat);
-    const thread = category.addTopic('Auto-generated Mafia Game Thread',
-        'This is an automatic mafia thread. This will be the main game thread for the game');
-    const threadID = thread.id;
+    const threadTitle = 'Auto-generated Mafia Game Thread';
+    const threadOP = 'This is an automatic mafia thread. This will be the main game thread for the game';
     
     //TODO: create scum chat
     
-    return thread.watch()
+    return internals.forum.Category.get(cat).then((category) => category.addTopic(threadTitle, threadOP))
+        .then((thread) => {
+            threadID = thread.id;
+            return thread.watch();
+        })
         .then(() => SockMafia.internals.dao.createGame(threadID))
         .then((g) => {
             internals.game = g;
+            g.isActive = false;
         })
         .then(() => internals.game.addModerator(internals.myName))
         .then(() => internals.forum.Post.reply(threadID, undefined, 'Signups are now open!\n To join the game, please type `!join`.'))
@@ -104,7 +108,32 @@ exports.startGame = function() {
             internals.scum.push(players[3].username);
         }
         
-        return internals.game.newDay()
+        //Send role cards
+        const rolePromises = [];
+        for (let i = 0; i < players.length; i++) {
+            let message;
+            if (internals.scum.indexOf(players[i].username)) {
+                message = 'You are a Mafia Goon!\n' +
+                    'Every night, you and your companions may choose to kill one person.\n' +
+                    'You win when the number of Mafia Goons is equal to or greater than the number of Town players';
+            } else {
+                message = 'You are a Vanilla Town!\n' +
+                    'Your only ability is the daytime vote. Choose wisely!\n' +
+                    'You win when all Mafia Goons are dead.';
+            }
+            
+            const targets = internals.game.moderators.map((mod) => mod.username);
+            targets.push(players[i].username);
+            
+            const promise = internals.forum.Chat.create(targets, message, 'Auto-generated Mafia Role Card')
+                            .then((chatroom) => {
+                                internals.game.addChat(chatroom.id);
+                                return chatroom.send(message);
+                            });
+            rolePromises.push(promise);
+        }
+        
+        return Promise.all(rolePromises).then(() => internals.game.newDay())
             .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'Let the game begin!'))
             .then(() => exports.setTimer(Moment().add(72, 'hours'), exports.onDayEnd));
     } else {
