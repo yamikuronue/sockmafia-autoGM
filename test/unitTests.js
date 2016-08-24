@@ -24,6 +24,31 @@ describe('AutoGM', () => {
 		sandbox.restore();
 	});
 	
+	describe('plugin', () => {
+		const fakeConfig = {
+		};
+
+		const fakeForum = {
+			username: 'abot',
+			on: () => 1,
+			removeListener: () => 1
+		};
+		
+		it('must return a plugin object', () => {
+			AutoGM.plugin(fakeForum, fakeConfig).should.include.keys('activate', 'deactivate');
+		});
+		
+		it('should save the forum reference', () => {
+			AutoGM.plugin(fakeForum, fakeConfig);
+			AutoGM.internals.forum.should.deep.equal(fakeForum);
+		});
+		
+		it('should capture its name', () => {
+			AutoGM.plugin(fakeForum, fakeConfig);
+			AutoGM.internals.myName.should.equal(fakeForum.username);
+		});
+	});
+
 	describe('activate', () => {
 		let clock;
 		

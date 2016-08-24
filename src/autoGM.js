@@ -45,6 +45,7 @@ exports.deactivate = function deactivate() {
  */
 exports.plugin = function plugin(forum, config) {
     internals.forum = forum;
+    internals.myName = forum.username;
     
     return {
 		activate: exports.activate,
