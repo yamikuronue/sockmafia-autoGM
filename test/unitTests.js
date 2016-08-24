@@ -61,6 +61,10 @@ describe('AutoGM', () => {
 			clock = sinon.useFakeTimers();
 		});
 		
+		beforeEach(() => {
+			sandbox.stub(AutoGM, 'init').resolves()
+		});
+		
 		afterEach(() => {
 			clock.restore();
 			return AutoGM.deactivate();
@@ -79,6 +83,12 @@ describe('AutoGM', () => {
 			
 			return AutoGM.activate().then(() => {
 				AutoGM.internals.forum.on.should.have.been.calledWith('mafia:playerLynched');
+			});
+		});
+		
+		it('Should init the game', () => {
+			return AutoGM.activate().then(() => {
+				AutoGM.init.should.have.been.called;
 			});
 		});
 	});
