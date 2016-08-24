@@ -24,6 +24,85 @@ describe('AutoGM', () => {
 		sandbox.restore();
 	});
 	
+	describe('activate', () => {
+		let clock;
+		
+		before(() => {
+			AutoGM.internals.forum = {
+				on: () => 1,
+				removeListener: () => 1
+			};
+			
+			clock = sinon.useFakeTimers();
+		});
+		
+		afterEach(() => {
+			clock.restore();
+			return AutoGM.deactivate();
+		});
+		
+		it('Should start the internal clock', () => {
+			sandbox.spy(clock, 'setInterval');
+			
+			return AutoGM.activate().then(() => {
+				clock.setInterval.should.have.been.called;
+			});
+		});
+		
+		it('Should listen for lynch events', () => {
+			sandbox.spy(AutoGM.internals.forum, 'on');
+			
+			return AutoGM.activate().then(() => {
+				AutoGM.internals.forum.on.should.have.been.calledWith('mafia:playerLynched');
+			});
+		});
+	});
+	
+	describe('deactivate', () => {
+		let clock;
+		
+		before(() => {
+			AutoGM.internals.forum = {
+				on: () => 1,
+				removeListener: () => 1
+			};
+			
+			clock = sinon.useFakeTimers();
+		});
+		
+		beforeEach(() => {
+			return AutoGM.activate();
+		});
+		
+		afterEach(() => {
+			clock.restore();
+		});
+		
+		it('Should stop the internal clock', () => {
+			sandbox.spy(clock, 'clearInterval');
+			
+			return AutoGM.deactivate().then(() => {
+				clock.clearInterval.should.have.been.called;
+			});
+		});
+		
+		it('Should stop listening for lynch events', () => {
+			sandbox.spy(AutoGM.internals.forum, 'removeListener');
+			
+			return AutoGM.deactivate().then(() => {
+				AutoGM.internals.forum.removeListener.should.have.been.calledWith('mafia:playerLynched');
+			});
+		});
+		
+		it('Should lose the game', () => {
+			AutoGM.internals.game = 'stuff';
+			
+			return AutoGM.deactivate().then(() => {
+				chai.expect(AutoGM.internals.game).to.be.undefined;
+			});
+		});
+	});
+	
 	describe('init', () => {
 		let fakeDao, fakeGame, fakeForum, fakeTopic;
 		
@@ -255,10 +334,11 @@ describe('AutoGM', () => {
 			fakeForum = {
 				Post: {
 					reply: () => Promise.resolve()
-				}
+				},
+				removeListener: () => 1
 			};
 			
-			AutoGM.plugin(fakeForum);
+			AutoGM.internals.forum = fakeForum;
 			
 			AutoGM.internals.game = {
 				livePlayers: [],
@@ -363,7 +443,8 @@ describe('AutoGM', () => {
 			fakeForum = {
 				Post: {
 					reply: () => Promise.resolve()
-				}
+				},
+				removeListener: () => 1
 			};
 			
 			AutoGM.plugin(fakeForum);
@@ -484,6 +565,13 @@ describe('AutoGM', () => {
 
 	describe('setTimer', () => {
 		let clock;
+		
+		before(() => {
+			AutoGM.internals.forum = {
+				on: () => 1,
+				removeListener: () => 1
+			};
+		});
 		
 		beforeEach(() => {
 			clock = sinon.useFakeTimers();

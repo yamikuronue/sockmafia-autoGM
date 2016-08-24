@@ -25,10 +25,13 @@ exports.internals = internals;
  */
 exports.activate = function activate() {
     internals.timer.handle = setInterval(timer, 10);
+    internals.forum.on('mafia:playerLynched', exports.onLynch);
+    return Promise.resolve();
 };
 
 exports.deactivate = function deactivate() {
     internals.game = undefined;
+    internals.forum.removeListener('mafia:playerLynched', exports.onLynch);
     clearInterval(internals.timer.handle);
     return Promise.resolve();
 };
@@ -45,7 +48,7 @@ exports.plugin = function plugin(forum, config) {
     
     return {
 		activate: exports.activate,
-		deactivate: () => exports.deactivate
+		deactivate: exports.deactivate
 	};
 };
 
