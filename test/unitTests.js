@@ -231,7 +231,8 @@ describe('AutoGM', () => {
 		
 		before(() => {
 			const fakeRoom = {
-				send: () => Promise.resolve()
+				send: () => Promise.resolve(),
+				id: 1
 			};
 			
 			fakeForum = {
@@ -330,7 +331,7 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeForum.Chat, 'create');
 			
 			return AutoGM.startGame().then(() => {
-				fakeForum.Chat.create.should.have.callCount(6);
+				fakeForum.Chat.create.should.have.callCount(7); //6 role cards + 1 scumtalk
 			});
 		});
 		

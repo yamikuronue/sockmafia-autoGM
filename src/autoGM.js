@@ -110,6 +110,7 @@ exports.startGame = function() {
         
         //Send role cards
         const rolePromises = [];
+        const mods = internals.game.moderators.map((mod) => mod.username);
         for (let i = 0; i < players.length; i++) {
             let message;
             if (internals.scum.indexOf(players[i].username)) {
@@ -122,8 +123,8 @@ exports.startGame = function() {
                     'You win when all Mafia Goons are dead.';
             }
             
-            const targets = internals.game.moderators.map((mod) => mod.username);
-            targets.push(players[i].username);
+           
+            const targets = mods.concat(players[i].username);
             
             const promise = internals.forum.Chat.create(targets, message, 'Auto-generated Mafia Role Card')
                             .then((chatroom) => {
@@ -134,6 +135,13 @@ exports.startGame = function() {
         }
         
         return Promise.all(rolePromises).then(() => internals.game.newDay())
+            .then(() => {
+                //Scum chats
+                const targets = internals.scum.concat(mods);
+                return internals.forum.Chat.create(targets, 'This is the Scum Talk thread. You may talk in this thread at any time.', 
+                                                'Auto-generated Mafia Scum Talk');
+            })
+            .then((chatroom) => internals.game.addChat(chatroom.id))
             .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'Let the game begin!'))
             .then(() => exports.setTimer(Moment().add(72, 'hours'), exports.onDayEnd));
     } else {
