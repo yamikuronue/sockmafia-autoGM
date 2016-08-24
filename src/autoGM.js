@@ -26,7 +26,7 @@ exports.internals = internals;
 exports.activate = function activate() {
     internals.timer.handle = setInterval(timer, 10);
     internals.forum.on('mafia:playerLynched', exports.onLynch);
-    return Promise.resolve();
+    return exports.init();
 };
 
 exports.deactivate = function deactivate() {

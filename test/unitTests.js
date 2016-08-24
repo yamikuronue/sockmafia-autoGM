@@ -62,7 +62,7 @@ describe('AutoGM', () => {
 		});
 		
 		beforeEach(() => {
-			sandbox.stub(AutoGM, 'init').resolves()
+			sandbox.stub(AutoGM, 'init').resolves();
 		});
 		
 		afterEach(() => {
@@ -106,6 +106,7 @@ describe('AutoGM', () => {
 		});
 		
 		beforeEach(() => {
+			sandbox.stub(AutoGM, 'init').resolves();
 			return AutoGM.activate();
 		});
 		
@@ -621,6 +622,7 @@ describe('AutoGM', () => {
 		});
 		
 		beforeEach(() => {
+			sandbox.stub(AutoGM, 'init').resolves();
 			clock = sinon.useFakeTimers();
 			return AutoGM.activate();
 		});
