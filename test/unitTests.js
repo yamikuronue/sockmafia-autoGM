@@ -104,20 +104,26 @@ describe('AutoGM', () => {
 	});
 	
 	describe('init', () => {
-		let fakeDao, fakeGame, fakeForum, fakeTopic;
+		let fakeDao, fakeGame, fakeForum, fakeTopic, fakeCat;
 		
 		before(() => {
 			fakeGame = {
 				addModerator: () => Promise.resolve()
 			};
 			
+			fakeCat = {
+				addTopic: () => fakeTopic
+			};
+			
 			fakeDao = {
 				getGameById: () => Promise.resolve(fakeGame),
 				createGame: () => Promise.resolve(fakeGame)
 			};
+			
 			SockMafia.internals.dao = fakeDao;
 			
 			fakeTopic = {
+				id: 1234,
 				watch: () => Promise.resolve()
 			};
 			
@@ -127,6 +133,9 @@ describe('AutoGM', () => {
 				},
 				Topic: {
 					get: () => fakeTopic
+				},
+				Category: {
+					get: () => fakeCat
 				}
 			};
 			
@@ -136,7 +145,10 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should create a thread', () => {
-		
+			sandbox.spy(fakeCat, 'addTopic');
+			return AutoGM.init().then(() => {
+				fakeCat.addTopic.should.have.been.called;
+			});
 		});
 		
 		it('Should watch the thread', () => {
@@ -149,7 +161,7 @@ describe('AutoGM', () => {
 		it('Should create a game', () => {
 			sandbox.spy(fakeDao, 'createGame');
 			return AutoGM.init().then(() => {
-				fakeDao.createGame.should.have.been.called;
+				fakeDao.createGame.should.have.been.calledWith(fakeTopic.id);
 			});
 		});
 		

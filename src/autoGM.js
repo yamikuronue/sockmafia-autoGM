@@ -67,9 +67,15 @@ function timer() {
 
 
 exports.init = function() {
-    //TODO: Create thread
-    const threadID = 12345;
-    const thread = internals.forum.Topic.get(threadID);
+    //TODO: configurable category
+    const cat = 22;
+    
+    const category = internals.forum.Category.get(cat);
+    const thread = category.addTopic('Auto-generated Mafia Game Thread',
+        'This is an automatic mafia thread. This will be the main game thread for the game');
+    const threadID = thread.id;
+    
+    //TODO: create scum chat
     
     return thread.watch()
         .then(() => SockMafia.internals.dao.createGame(threadID))
