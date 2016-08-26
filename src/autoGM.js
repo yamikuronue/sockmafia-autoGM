@@ -82,10 +82,9 @@ exports.init = function() {
             threadID = thread.id;
             return thread.watch();
         })
-        .then(() => SockMafia.internals.dao.createGame(threadID))
+        .then(() => SockMafia.internals.dao.createGame(threadID, 'autoGame-' + threadID, false))
         .then((g) => {
             internals.game = g;
-            g.isActive = false;
         })
         .then(() => internals.game.addModerator(internals.myName))
         .then(() => internals.forum.Post.reply(threadID, undefined, 'Signups are now open!\n To join the game, please type `!join`.'))
