@@ -18,6 +18,14 @@ const internals = {
 };
 exports.internals = internals;
 
+exports.defaultConfig = {
+    phases: {
+        init: 48,
+        day: 72,
+        night: 24
+    }
+};
+
 
 /**
  * Sockbot 3.0 Activation function
@@ -47,6 +55,17 @@ exports.plugin = function plugin(forum, config) {
     internals.forum = forum;
     internals.myName = forum.username;
     
+    if (config === null || typeof config !== 'object') {
+		config = {};
+	}
+	
+	Object.keys(exports.defaultConfig).forEach((key) => {
+		if (!config[key]) {
+			config[key] = exports.defaultConfig[key];
+		}
+	});
+    
+    internals.config = config;
     return {
 		activate: exports.activate,
 		deactivate: exports.deactivate
@@ -88,7 +107,7 @@ exports.init = function() {
         })
         .then(() => internals.game.addModerator(internals.myName))
         .then(() => internals.forum.Post.reply(threadID, undefined, 'Signups are now open!\n To join the game, please type `!join`.'))
-        .then(() => exports.setTimer(Moment().add(48, 'hours'), exports.startGame));
+        .then(() => exports.setTimer(Moment().add(internals.config.phases.init, 'hours'), exports.startGame));
 };
 
 exports.startGame = function() {
@@ -142,7 +161,7 @@ exports.startGame = function() {
             })
             .then((chatroom) => internals.game.addChat(chatroom.id))
             .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'Let the game begin!'))
-            .then(() => exports.setTimer(Moment().add(72, 'hours'), exports.onDayEnd));
+            .then(() => exports.setTimer(Moment().add(internals.config.phases.day, 'hours'), exports.onDayEnd));
     } else {
         return exports.deactivate();
     }
@@ -152,7 +171,7 @@ exports.startGame = function() {
 exports.onDayEnd = function() {
     return internals.game.nextPhase()
     .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'It is now night'))
-    .then(() => exports.setTimer(Moment().add(24, 'hours'), exports.onNightEnd));
+    .then(() => exports.setTimer(Moment().add(internals.config.phases.night, 'hours'), exports.onNightEnd));
 };
 
 exports.onLynch = function() {
@@ -182,7 +201,7 @@ exports.onNightEnd = function() {
     } else {
         return internals.game.newDay()
         .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'It is now day'))
-        .then(() => exports.setTimer(Moment().add(72, 'hours'), exports.onNightEnd));
+        .then(() => exports.setTimer(Moment().add(internals.config.phases.day, 'hours'), exports.onNightEnd));
     }
 };
 

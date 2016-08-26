@@ -21,6 +21,7 @@ describe('AutoGM', () => {
 	});
 	
 	afterEach(() => {
+		AutoGM.internals.config = AutoGM.defaultConfig;
 		sandbox.restore();
 	});
 	
@@ -46,6 +47,18 @@ describe('AutoGM', () => {
 		it('should capture its name', () => {
 			AutoGM.plugin(fakeForum, fakeConfig);
 			AutoGM.internals.myName.should.equal(fakeForum.username);
+		});
+		
+		it('should capture timer lengths', () => {
+			const configWithPhases = {
+				phases: {
+					day: 1, 
+					night: 2,
+					init: 3
+				}
+			};
+			AutoGM.plugin(fakeForum, configWithPhases);
+			AutoGM.internals.config.phases.should.deep.equal(configWithPhases.phases);
 		});
 	});
 
