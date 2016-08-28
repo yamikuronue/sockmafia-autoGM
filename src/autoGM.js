@@ -1,5 +1,5 @@
 'use strict';
-const debug = require('debug')('sockbot:mafia');
+const debug = require('debug')('sockbot:mafia:autoGM');
 const SockMafia = require('sockmafia');
 const Moment = require('moment');
 
@@ -20,24 +20,25 @@ exports.internals = internals;
 
 exports.defaultConfig = {
     phases: {
-        init: 48,
-        day: 72,
-        night: 24
+        init: '48 hours',
+        day: '72 hours',
+        night: '24 hours'
     }
 };
-
 
 /**
  * Sockbot 3.0 Activation function
  * @returns {Promise} A promise that will resolve when the activation is complete
  */
 exports.activate = function activate() {
+    debug('Activating');
     internals.timer.handle = setInterval(timer, 10);
     internals.forum.on('mafia:playerLynched', exports.onLynch);
     return exports.init();
 };
 
 exports.deactivate = function deactivate() {
+    debug('Deactivating');
     internals.game = undefined;
     internals.forum.removeListener('mafia:playerLynched', exports.onLynch);
     clearInterval(internals.timer.handle);
@@ -73,13 +74,24 @@ exports.plugin = function plugin(forum, config) {
 };
 
 exports.setTimer = function setTimer(expires, callback) {
+    debug('Setting timer for ' + expires);
+    if (!Moment.isMoment(expires)) {
+        const parts = expires.split(' ');
+        expires = new Moment().add(parts[0], parts[1]);
+    }
     internals.timer.callback = callback;
     internals.timer.nextAlert = expires;
     return Promise.resolve();
 };
 
+exports.cancelTimer = function cancelTimer() {
+    internals.timer.nextAlert = undefined;
+    internals.timer.callback = undefined;
+};
+
 function timer() {
     if (internals.timer.nextAlert && Moment().isSameOrAfter(internals.timer.nextAlert)) {
+        debug('Timer expired!');
         internals.timer.nextAlert = undefined;
         internals.timer.callback();
     }
@@ -91,10 +103,10 @@ exports.init = function() {
     const cat = 22;
     let threadID;
     
+    debug('Initializing');
+    
     const threadTitle = 'Auto-generated Mafia Game Thread';
     const threadOP = 'This is an automatic mafia thread. This will be the main game thread for the game';
-    
-    //TODO: create scum chat
     
     return internals.forum.Category.get(cat).then((category) => category.addTopic(threadTitle, threadOP))
         .then((thread) => {
@@ -106,11 +118,39 @@ exports.init = function() {
             internals.game = g;
         })
         .then(() => internals.game.addModerator(internals.myName))
-        .then(() => internals.forum.Post.reply(threadID, undefined, 'Signups are now open!\n To join the game, please type `!join`.'))
-        .then(() => exports.setTimer(Moment().add(internals.config.phases.init, 'hours'), exports.startGame));
+        .then(() => internals.forum.Post.reply(threadID, undefined, 'Signups are now open!\n To join the game, please type `!join`.\n The game will start in ' + internals.config.phases.init))
+        .then(() => exports.setTimer(internals.config.phases.init, exports.startGame));
+};
+
+exports.sendRolecard = function(index, username) {
+    let message, target;
+    if (internals.scum.indexOf(username)) {
+        message = 'You are a Mafia Goon!\n' +
+            'Every night, you and your companions may choose to kill one person.\n' +
+            'You win when the number of Mafia Goons is equal to or greater than the number of Town players';
+    } else {
+        message = 'You are a Vanilla Town!\n' +
+            'Your only ability is the daytime vote. Choose wisely!\n' +
+            'You win when all Mafia Goons are dead.';
+    }
+
+    return new Promise( (resolve, reject) => {
+            //Insert a delay to stop them from all firing off at once
+            setTimeout(resolve, 1000 * index);
+        })
+        .then(() => internals.forum.User.getByName(username))
+        .then((t) => {
+            target = t;
+            return internals.forum.Chat.create(target, message, 'Auto-generated Mafia Role Card');
+        })
+        .then((chatroom) => {
+            internals.game.addChat(chatroom.id);
+            return Promise.resolve(target);
+        });
 };
 
 exports.startGame = function() {
+    debug('Running game start routine');
     const players = internals.game.livePlayers;
     
     if (players.length > 5) {
@@ -128,57 +168,56 @@ exports.startGame = function() {
         
         //Send role cards
         const rolePromises = [];
-        const mods = internals.game.moderators.map((mod) => mod.username);
+        const scumUsers = [];
         for (let i = 0; i < players.length; i++) {
-            let message;
-            if (internals.scum.indexOf(players[i].username)) {
-                message = 'You are a Mafia Goon!\n' +
-                    'Every night, you and your companions may choose to kill one person.\n' +
-                    'You win when the number of Mafia Goons is equal to or greater than the number of Town players';
-            } else {
-                message = 'You are a Vanilla Town!\n' +
-                    'Your only ability is the daytime vote. Choose wisely!\n' +
-                    'You win when all Mafia Goons are dead.';
-            }
-            
-           
-            const targets = mods.concat(players[i].username);
-            
-            const promise = internals.forum.Chat.create(targets, message, 'Auto-generated Mafia Role Card')
-                            .then((chatroom) => {
-                                internals.game.addChat(chatroom.id);
-                                return chatroom.send(message);
-                            });
+            const promise = exports.sendRolecard(i, players[i].username).then((target) => {
+                if (internals.scum.indexOf(players[i].username)) {
+                    scumUsers.push(target);
+                }
+            });
             rolePromises.push(promise);
         }
         
-        return Promise.all(rolePromises).then(() => internals.game.newDay())
+        return Promise.all(rolePromises)
+            .then(() => internals.game.setActive())
+            .then(() => internals.game.newDay())
             .then(() => {
-                //Scum chats
-                const targets = internals.scum.concat(mods);
-                return internals.forum.Chat.create(targets, 'This is the Scum Talk thread. You may talk in this thread at any time.', 
+                //Scum chat
+                return internals.forum.Chat.create(scumUsers, 'This is the Scum Talk thread. You may talk in this thread at any time.',
                                                 'Auto-generated Mafia Scum Talk');
             })
             .then((chatroom) => internals.game.addChat(chatroom.id))
-            .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'Let the game begin!'))
-            .then(() => exports.setTimer(Moment().add(internals.config.phases.day, 'hours'), exports.onDayEnd));
+            .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'Let the game begin! It is now day. The day will end in ' + internals.config.phases.day))
+            .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd))
+            .catch((err) => {
+                return internals.forum.Post.reply(internals.game.topicId, undefined, ':wtf: Sorry folks, I need to cancel this one; I\'ve hit an error. \n Error was: ' + err)
+                    .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, err.stack))
+                    .then(() => internals.game.setInactive())
+                    .then(() => exports.deactivate());
+            });
     } else {
-        return exports.deactivate();
+        debug('Cancelling game in ' + internals.game.topicId);
+        return internals.forum.Post.reply(internals.game.topicId, undefined, 'I\'m sorry, there were not enough players. Better luck next time!')
+        .then(() => internals.game.setInactive())
+        .then(()=> exports.deactivate());
     }
 };
 
 
 exports.onDayEnd = function() {
+    debug('running Day End routine');
     return internals.game.nextPhase()
-    .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'It is now night'))
-    .then(() => exports.setTimer(Moment().add(internals.config.phases.night, 'hours'), exports.onNightEnd));
+    .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'It is now night. Night will end in ' + internals.config.phases.night))
+    .then(() => exports.setTimer(internals.config.phases.night, 'hours', exports.onNightEnd));
 };
 
 exports.onLynch = function() {
+    debug('running Lynch routine');
+    exports.cancelTimer();
     const won = exports.checkWin();
     
     if (won) {
-        return internals.forum.Post.reply(internals.game.topicID, undefined, 'The game is over! ' + won + ' won!')
+        return internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!')
             .then(() => exports.deactivate());
     } else {
         return exports.onDayEnd();
@@ -186,6 +225,7 @@ exports.onLynch = function() {
 };
 
 exports.onNightEnd = function() {
+    debug('running Night End routine');
     const action = internals.game.getActionOfType('target', null, 'scum', null, false);
 	
 	if (action) {
@@ -196,16 +236,17 @@ exports.onNightEnd = function() {
     const won = exports.checkWin();
     
     if (won) {
-        return internals.forum.Post.reply(internals.game.topicID, undefined, 'The game is over! ' + won + ' won!')
+        return internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!')
             .then(() => exports.deactivate());
     } else {
         return internals.game.newDay()
-        .then(() => internals.forum.Post.reply(internals.game.topicID, undefined, 'It is now day'))
-        .then(() => exports.setTimer(Moment().add(internals.config.phases.day, 'hours'), exports.onNightEnd));
+        .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'It is now day. Day will end in ' + internals.config.phases.day))
+        .then(() => exports.setTimer(internals.config.phases.day, exports.onNightEnd));
     }
 };
 
 exports.checkWin = function() {
+    debug('Checking for win');
     let scum = 0; 
     let town = 0;
 

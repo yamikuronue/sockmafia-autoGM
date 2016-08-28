@@ -52,9 +52,9 @@ describe('AutoGM', () => {
 		it('should capture timer lengths', () => {
 			const configWithPhases = {
 				phases: {
-					day: 1, 
-					night: 2,
-					init: 3
+					day: '1 hour', 
+					night: '2 hours',
+					init: '3 hours'
 				}
 			};
 			AutoGM.plugin(fakeForum, configWithPhases);
@@ -229,12 +229,11 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should chill for 48 hours', () => {
-			const expected = Moment().add(48, 'hours');
+			const expected =  '48 hours';
 			sandbox.stub(AutoGM, 'setTimer');
 			return AutoGM.init().then(() => {
 				AutoGM.setTimer.should.have.been.called;
-				const actual = AutoGM.setTimer.firstCall.args[0];
-				Moment(actual).isSameOrAfter(expected).should.be.true;
+				AutoGM.setTimer.firstCall.args[0].should.equal(expected);
 			});
 		});
 	});
@@ -254,18 +253,32 @@ describe('AutoGM', () => {
 				},
 				Chat: {
 					create: () => Promise.resolve(fakeRoom)
-				}
+				},
+				User: {
+					getByName: (name) => Promise.resolve({
+						username: name
+					})
+				},
+				removeListener: () => Promise.resolve()
 			};
 			
 			AutoGM.internals.forum = fakeForum;
 			
+			
+		});
+		
+		beforeEach(() => {
 			AutoGM.internals.game = {
 				livePlayers: [],
 				newDay: () => Promise.resolve(),
 				topicID: 123,
 				moderators: [],
-				addChat: () => 1
+				addChat: () => 1,
+				setActive: () => 1,
+				setInactive: () => 1
 			};
+			
+			sandbox.stub(AutoGM, 'sendRolecard').resolves();
 		});
 		
 		function player(p) {
@@ -276,8 +289,25 @@ describe('AutoGM', () => {
 		
 		it('Should deactivate with 0 players', () => {
 			sandbox.stub(AutoGM, 'deactivate').resolves();
+			sandbox.spy(fakeForum.Post, 'reply');
+			
 			return AutoGM.startGame().then(() => {
 				AutoGM.deactivate.should.have.been.called;
+				fakeForum.Post.reply.should.have.been.called;
+			});
+		});
+		
+		it('Should deactivate on error', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
+			AutoGM.sendRolecard.restore();
+			sandbox.stub(AutoGM, 'sendRolecard').rejects(new Error());
+			sandbox.stub(AutoGM, 'deactivate').resolves();
+			sandbox.spy(fakeForum.Post, 'reply');
+			
+			return AutoGM.startGame().then(() => {
+				AutoGM.deactivate.should.have.been.called;
+				fakeForum.Post.reply.should.have.been.called;
+				fakeForum.Post.reply.firstCall.args[2].should.include(':wtf:');
 			});
 		});
 		
@@ -341,22 +371,42 @@ describe('AutoGM', () => {
 		
 		it('Should send role cards', () => {
 			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
+
+			return AutoGM.startGame().then(() => {
+				AutoGM.sendRolecard.should.have.callCount(6);
+			});
+		});
+		
+		it('Should create a scum chat', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
 			sandbox.spy(fakeForum.Chat, 'create');
 			
 			return AutoGM.startGame().then(() => {
-				fakeForum.Chat.create.should.have.callCount(7); //6 role cards + 1 scumtalk
+				fakeForum.Chat.create.should.have.been.called;
+			});
+		});
+		
+		it('Should start the day', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
+			sandbox.spy(AutoGM.internals.game, 'setActive');
+			sandbox.spy(AutoGM.internals.game, 'newDay');
+			sandbox.spy(fakeForum.Post, 'reply');
+
+			return AutoGM.startGame().then(() => {
+				AutoGM.internals.game.setActive.should.have.been.called;
+				AutoGM.internals.game.newDay.should.have.been.called;
+				fakeForum.Post.reply.should.have.been.called;
 			});
 		});
 		
 		it('Should chill for three days', () => {
 			AutoGM.internals.game.livePlayers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
 			sandbox.stub(AutoGM, 'setTimer').resolves();
-			const expected = Moment().add(72, 'hours');
+			const expected = '72 hours';
 			
 			return AutoGM.startGame().then(() => {
 				AutoGM.setTimer.should.have.been.called;
-				const actual = AutoGM.setTimer.firstCall.args[0];
-				Moment(actual).isSameOrAfter(expected).should.be.true;
+				AutoGM.setTimer.firstCall.args[0].should.equal(expected);
 			});
 		});
 	});
@@ -397,12 +447,11 @@ describe('AutoGM', () => {
 		
 		it('Should chill for a day', () => {
 			sandbox.stub(AutoGM, 'setTimer').resolves();
-			const expected = Moment().add(24, 'hours');
+			const expected = '24 hours';
 			
 			return AutoGM.onDayEnd().then(() => {
 				AutoGM.setTimer.should.have.been.called;
-				const actual = AutoGM.setTimer.firstCall.args[0];
-				Moment(actual).isSameOrAfter(expected).should.be.true;
+				AutoGM.setTimer.firstCall.args[0].should.equal(expected);
 			});
 		});
 	});
@@ -479,12 +528,11 @@ describe('AutoGM', () => {
 		it('Should chill for 3 days if a new day dawned', () => {
 			sandbox.stub(AutoGM, 'checkWin').returns(false);
 			sandbox.stub(AutoGM, 'setTimer').resolves();
-			const expected = Moment().add(72, 'hours');
+			const expected = '72 hours';
 			
 			return AutoGM.onNightEnd().then(() => {
 				AutoGM.setTimer.should.have.been.called;
-				const actual = AutoGM.setTimer.firstCall.args[0];
-				Moment(actual).isSameOrAfter(expected).should.be.true;
+				AutoGM.setTimer.firstCall.args[0].should.equal(expected);
 			});
 		});
 		
@@ -683,4 +731,11 @@ describe('AutoGM', () => {
 		});
 	});
 	
+	describe('cancelTimer', () => {
+		it('Should remove the timer', () => {
+			return AutoGM.setTimer('2 minutes', sandbox.stub().resolves())
+			.then(() => AutoGM.cancelTimer())
+			.then(() => chai.expect(AutoGM.internals.timer.nextAlert).to.be.undefined);
+		});
+	});
 });
