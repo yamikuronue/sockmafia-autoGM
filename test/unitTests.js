@@ -794,6 +794,7 @@ describe('AutoGM', () => {
 		
 		beforeEach(() => {
 			sandbox.stub(AutoGM, 'init').resolves();
+			sandbox.stub(AutoGM, 'save').resolves();
 			clock = sinon.useFakeTimers();
 			return AutoGM.activate();
 		});
@@ -801,6 +802,14 @@ describe('AutoGM', () => {
 		afterEach(() => {
 			clock.restore();
 			return AutoGM.deactivate();
+		});
+		
+		it('Should persist game state', () => {
+			const callback = sandbox.stub().resolves();
+			
+			return AutoGM.setTimer(Moment().add(10, 'ms'), callback).then(() => {
+				AutoGM.save.should.have.been.called;
+			});
 		});
 		
 		it('Should call the callback when the time passes', () => {

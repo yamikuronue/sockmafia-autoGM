@@ -88,7 +88,7 @@ exports.setTimer = function setTimer(expires, callback) {
     }
     internals.timer.callback = callback;
     internals.timer.nextAlert = expires;
-    return Promise.resolve();
+    return exports.save();
 };
 
 exports.cancelTimer = function cancelTimer() {
