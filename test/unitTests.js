@@ -6,6 +6,7 @@ const chai = require('chai'),
 const SockMafia = require('sockmafia');
 const AutoGM = require('../src/autoGM');
 const Moment = require('moment');
+const fs = require('fs');
 
 //promise library plugins
 require('sinon-as-promised');
@@ -249,6 +250,7 @@ describe('AutoGM', () => {
 			return AutoGM.init().then(() => {
 				AutoGM.setTimer.should.have.been.called;
 				AutoGM.setTimer.firstCall.args[0].should.equal(expected);
+				AutoGM.setTimer.firstCall.args[1].should.equal(AutoGM.startGame);
 			});
 		});
 	});
@@ -422,6 +424,7 @@ describe('AutoGM', () => {
 			return AutoGM.startGame().then(() => {
 				AutoGM.setTimer.should.have.been.called;
 				AutoGM.setTimer.firstCall.args[0].should.equal(expected);
+				AutoGM.setTimer.firstCall.args[1].should.equal(AutoGM.onDayEnd);
 			});
 		});
 	});
@@ -525,6 +528,7 @@ describe('AutoGM', () => {
 			return AutoGM.onDayEnd().then(() => {
 				AutoGM.setTimer.should.have.been.called;
 				AutoGM.setTimer.firstCall.args[0].should.equal(expected);
+				AutoGM.setTimer.firstCall.args[1].should.equal(AutoGM.onNightEnd);
 			});
 		});
 	});
@@ -606,6 +610,7 @@ describe('AutoGM', () => {
 			return AutoGM.onNightEnd().then(() => {
 				AutoGM.setTimer.should.have.been.called;
 				AutoGM.setTimer.firstCall.args[0].should.equal(expected);
+				AutoGM.setTimer.firstCall.args[1].should.equal(AutoGM.onDayEnd);
 			});
 		});
 		
@@ -811,4 +816,78 @@ describe('AutoGM', () => {
 			.then(() => chai.expect(AutoGM.internals.timer.nextAlert).to.be.undefined);
 		});
 	});
+
+	describe('save', () => {
+		beforeEach(() => {
+			sandbox.stub(fs, 'writeFile').yields();
+		});
+		
+		it('should persist to disc', () => {
+			return AutoGM.save().then(() => {
+				fs.writeFile.should.have.been.called;
+			});
+		});
+		
+		it('should persist scum', () => {
+			AutoGM.internals.scum = ['player1', 'player2'];
+			return AutoGM.save().then(() => {
+				const data = JSON.parse(fs.writeFile.firstCall.args[1]);
+				data.should.contain.key('scum');
+				data.scum.should.deep.equal(AutoGM.internals.scum);
+			});
+		});
+		
+		it('should persist next alert date', () => {
+			AutoGM.internals.timer.nextAlert = new Moment();
+			AutoGM.internals.timer.callback = 'function';
+			const expected = AutoGM.internals.timer.nextAlert.toDate();
+			
+			return AutoGM.save().then(() => {
+				const data = JSON.parse(fs.writeFile.firstCall.args[1]);
+				data.should.contain.key('timer');
+				data.timer.should.contain.key('nextAlert');
+				data.timer.nextAlert.should.equal(expected.toString());
+			});
+		});
+		
+		it('should persist callback of startGame', () => {
+			AutoGM.internals.timer.nextAlert = new Moment();
+			AutoGM.internals.timer.callback = AutoGM.startGame;
+			const expected = 'startGame';
+			
+			return AutoGM.save().then(() => {
+				const data = JSON.parse(fs.writeFile.firstCall.args[1]);
+				data.should.contain.key('timer');
+				data.timer.should.contain.key('callback');
+				data.timer.callback.should.equal(expected);
+			});
+		});
+		
+		it('should persist callback of onDayEnd', () => {
+			AutoGM.internals.timer.nextAlert = new Moment();
+			AutoGM.internals.timer.callback = AutoGM.onDayEnd;
+			const expected = 'onDayEnd';
+			
+			return AutoGM.save().then(() => {
+				const data = JSON.parse(fs.writeFile.firstCall.args[1]);
+				data.should.contain.key('timer');
+				data.timer.should.contain.key('callback');
+				data.timer.callback.should.equal(expected);
+			});
+		});
+		
+		it('should persist callback of onNightEnd', () => {
+			AutoGM.internals.timer.nextAlert = new Moment();
+			AutoGM.internals.timer.callback = AutoGM.onNightEnd;
+			const expected = 'onNightEnd';
+			
+			return AutoGM.save().then(() => {
+				const data = JSON.parse(fs.writeFile.firstCall.args[1]);
+				data.should.contain.key('timer');
+				data.timer.should.contain.key('callback');
+				data.timer.callback.should.equal(expected);
+			});
+		});
+	});
+	
 });

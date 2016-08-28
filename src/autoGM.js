@@ -2,6 +2,7 @@
 const debug = require('debug')('sockbot:mafia:autoGM');
 const SockMafia = require('sockmafia');
 const Moment = require('moment');
+const fs = require('fs');
 
 let Forum, game;
 
@@ -148,7 +149,7 @@ exports.sendRolecard = function(index, username) {
         });
 };
 
-exports.startGame = function() {
+exports.startGame = function startGame() {
     debug('Running game start routine');
     const players = internals.game.livePlayers;
     
@@ -203,11 +204,11 @@ exports.startGame = function() {
 };
 
 
-exports.onDayEnd = function() {
+exports.onDayEnd = function onDayEnd() {
     debug('running Day End routine');
     return internals.game.nextPhase()
     .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'It is now night. Night will end in ' + internals.config.phases.night))
-    .then(() => exports.setTimer(internals.config.phases.night, 'hours', exports.onNightEnd));
+    .then(() => exports.setTimer(internals.config.phases.night, exports.onNightEnd));
 };
 
 exports.onLynch = function() {
@@ -223,7 +224,7 @@ exports.onLynch = function() {
     }
 };
 
-exports.onNightEnd = function() {
+exports.onNightEnd = function onNightEnd() {
     debug('running Night End routine');
     const action = internals.game.getActionOfType('target', null, 'scum', null, false);
 	
@@ -240,7 +241,7 @@ exports.onNightEnd = function() {
     } else {
         return internals.game.newDay()
         .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'It is now day. Day will end in ' + internals.config.phases.day))
-        .then(() => exports.setTimer(internals.config.phases.day, exports.onNightEnd));
+        .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd));
     }
 };
 
@@ -267,4 +268,20 @@ exports.checkWin = function() {
     }
     
     return false;
+};
+
+exports.save = function() {
+    const persistData = {
+        scum: internals.scum,
+        timer: { }
+    };
+    
+    if (internals.timer.nextAlert && internals.timer.callback) {
+        persistData.timer.nextAlert = internals.timer.nextAlert.toDate().toString();
+        persistData.timer.callback = internals.timer.callback.name;
+    };
+    
+    return new Promise((resolve, reject) => {
+        fs.writeFile('autoGMdata', JSON.stringify(persistData), 'utf8', resolve);
+    });
 };
