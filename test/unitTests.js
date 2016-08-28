@@ -919,6 +919,12 @@ describe('AutoGM', () => {
 			});
 		});
 		
+		it('Should handle empty files', () => {
+			AutoGM.internals.scum = [];
+			fs.readFile.yields(undefined, '');
+			return AutoGM.load().should.eventually.be.false;
+		});
+		
 		it('Should read in the scum', () => {
 			AutoGM.internals.scum = [];
 			fs.readFile.yields(undefined, '{"scum": ["player1", "player2"]}');
