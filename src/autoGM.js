@@ -19,6 +19,7 @@ const internals = {
 exports.internals = internals;
 
 exports.defaultConfig = {
+    category: 22,
     phases: {
         init: '48 hours',
         day: '72 hours',
@@ -99,8 +100,6 @@ function timer() {
 
 
 exports.init = function() {
-    //TODO: configurable category
-    const cat = 22;
     let threadID;
     
     debug('Initializing');
@@ -108,7 +107,7 @@ exports.init = function() {
     const threadTitle = 'Auto-generated Mafia Game Thread';
     const threadOP = 'This is an automatic mafia thread. This will be the main game thread for the game';
     
-    return internals.forum.Category.get(cat).then((category) => category.addTopic(threadTitle, threadOP))
+    return internals.forum.Category.get(internals.config.category).then((category) => category.addTopic(threadTitle, threadOP))
         .then((thread) => {
             threadID = thread.id;
             return thread.watch();

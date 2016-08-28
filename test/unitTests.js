@@ -27,6 +27,7 @@ describe('AutoGM', () => {
 	
 	describe('plugin', () => {
 		const fakeConfig = {
+			category: 12
 		};
 
 		const fakeForum = {
@@ -47,6 +48,12 @@ describe('AutoGM', () => {
 		it('should capture its name', () => {
 			AutoGM.plugin(fakeForum, fakeConfig);
 			AutoGM.internals.myName.should.equal(fakeForum.username);
+		});
+		
+		
+		it('should capture the category', () => {
+			AutoGM.plugin(fakeForum, fakeConfig);
+			AutoGM.internals.config.category.should.equal(fakeConfig.category);
 		});
 		
 		it('should capture timer lengths', () => {
@@ -197,6 +204,14 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeCat, 'addTopic');
 			return AutoGM.init().then(() => {
 				fakeCat.addTopic.should.have.been.called;
+			});
+		});
+		
+		it('Should create a thread in the right category', () => {
+			AutoGM.internals.config.category = 13;
+			sandbox.spy(fakeForum.Category, 'get');
+			return AutoGM.init().then(() => {
+				fakeForum.Category.get.should.have.been.calledWith(13);
 			});
 		});
 		
