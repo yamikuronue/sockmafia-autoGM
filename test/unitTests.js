@@ -150,17 +150,30 @@ describe('AutoGM', () => {
 				AutoGM.internals.forum.removeListener.should.have.been.calledWith('mafia:playerLynched');
 			});
 		});
+
+	});
+	
+	describe('init', () => {
+		it('Should load when there is a game to load', () => {
+			sandbox.stub(AutoGM, 'load').resolves(true);
+			sandbox.stub(AutoGM, 'createGame').resolves();
+			AutoGM.init().then(() => {
+				AutoGM.load.should.have.been.called;
+				AutoGM.createGame.should.not.have.been.called;
+			});
+		});
 		
-		it('Should lose the game', () => {
-			AutoGM.internals.game = 'stuff';
-			
-			return AutoGM.deactivate().then(() => {
-				chai.expect(AutoGM.internals.game).to.be.undefined;
+		it('Should create a game when there is no game to load', () => {
+			sandbox.stub(AutoGM, 'load').resolves(false);
+			sandbox.stub(AutoGM, 'createGame').resolves();
+			AutoGM.init().then(() => {
+				AutoGM.load.should.have.been.called;
+				AutoGM.createGame.should.have.been.called;
 			});
 		});
 	});
 	
-	describe('init', () => {
+	describe('createGame', () => {
 		let fakeDao, fakeGame, fakeForum, fakeTopic, fakeCat;
 		
 		before(() => {
@@ -203,7 +216,7 @@ describe('AutoGM', () => {
 		
 		it('Should create a thread', () => {
 			sandbox.spy(fakeCat, 'addTopic');
-			return AutoGM.init().then(() => {
+			return AutoGM.createGame().then(() => {
 				fakeCat.addTopic.should.have.been.called;
 			});
 		});
@@ -211,35 +224,35 @@ describe('AutoGM', () => {
 		it('Should create a thread in the right category', () => {
 			AutoGM.internals.config.category = 13;
 			sandbox.spy(fakeForum.Category, 'get');
-			return AutoGM.init().then(() => {
+			return AutoGM.createGame().then(() => {
 				fakeForum.Category.get.should.have.been.calledWith(13);
 			});
 		});
 		
 		it('Should watch the thread', () => {
 			sandbox.spy(fakeTopic, 'watch');
-			return AutoGM.init().then(() => {
+			return AutoGM.createGame().then(() => {
 				fakeTopic.watch.should.have.been.called;
 			});
 		});
 		
 		it('Should create a game', () => {
 			sandbox.spy(fakeDao, 'createGame');
-			return AutoGM.init().then(() => {
+			return AutoGM.createGame().then(() => {
 				fakeDao.createGame.should.have.been.calledWith(fakeTopic.id);
 			});
 		});
 		
 		it('Should add itself as a mod', () => {
 			sandbox.spy(fakeGame, 'addModerator');
-			return AutoGM.init().then(() => {
+			return AutoGM.createGame().then(() => {
 				fakeGame.addModerator.should.have.been.calledWith('aBot');
 			});
 		});
 		
 		it('Should post a call for signups', () => {
 			sandbox.spy(fakeForum.Post, 'reply');
-			return AutoGM.init().then(() => {
+			return AutoGM.createGame().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
 			});
 		});
@@ -247,7 +260,7 @@ describe('AutoGM', () => {
 		it('Should chill for 48 hours', () => {
 			const expected =  '48 hours';
 			sandbox.stub(AutoGM, 'setTimer');
-			return AutoGM.init().then(() => {
+			return AutoGM.createGame().then(() => {
 				AutoGM.setTimer.should.have.been.called;
 				AutoGM.setTimer.firstCall.args[0].should.equal(expected);
 				AutoGM.setTimer.firstCall.args[1].should.equal(AutoGM.startGame);
@@ -912,6 +925,16 @@ describe('AutoGM', () => {
 			AutoGM.load().should.reject;
 		});
 		
+		it('Should resolve if file not found', () => {
+			fs.readFile.yields({
+				code: 'ENOENT'
+			}, undefined);
+
+			return AutoGM.load().then((res) => {
+				res.should.be.false;
+			});
+		});
+		
 		it('Should read the file', () => {
 			fs.readFile.yields(undefined, minFile);
 			return AutoGM.load().then(() => {
@@ -922,7 +945,19 @@ describe('AutoGM', () => {
 		it('Should handle empty files', () => {
 			AutoGM.internals.scum = [];
 			fs.readFile.yields(undefined, '');
-			return AutoGM.load().should.eventually.be.false;
+			return AutoGM.load().then((result) => {
+				AutoGM.internals.scum.should.deep.equal([]);
+				result.should.be.false;
+			});
+		});
+		
+		it('Should handle no game state', () => {
+			AutoGM.internals.scum = [];
+			fs.readFile.yields(undefined, '{}');
+			return AutoGM.load().then((result) => {
+				AutoGM.internals.scum.should.deep.equal([]);
+				result.should.be.false;
+			});
 		});
 		
 		it('Should read in the scum', () => {

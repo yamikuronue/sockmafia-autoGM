@@ -3,6 +3,7 @@ const debug = require('debug')('sockbot:mafia:autoGM');
 const SockMafia = require('sockmafia');
 const Moment = require('moment');
 const fs = require('fs');
+const rimrafPromise = require('rimraf-promise');
 
 let Forum, game;
 
@@ -41,10 +42,14 @@ exports.activate = function activate() {
 
 exports.deactivate = function deactivate() {
     debug('Deactivating');
-    internals.game = undefined;
     internals.forum.removeListener('mafia:playerLynched', exports.onLynch);
     clearInterval(internals.timer.handle);
     return Promise.resolve();
+};
+
+function endGame() {
+    internals.game = undefined;
+    return rimrafPromise('autoGMdata');
 };
 
 
@@ -101,12 +106,25 @@ function timer() {
 
 
 exports.init = function() {
-    let threadID;
-    
     debug('Initializing');
     
+    return exports.load().then((result) => {
+        if (result) {
+            debug('Restored game in progress');
+            return Promise.resolve();
+        } else {
+            return exports.createGame();
+        }
+    });
+    
+};
+
+exports.createGame = function() {
+    let threadID;
     const threadTitle = 'Auto-generated Mafia Game Thread';
     const threadOP = 'This is an automatic mafia thread. This will be the main game thread for the game';
+    
+    debug('Creating game');
     
     return internals.forum.Category.get(internals.config.category).then((category) => category.addTopic(threadTitle, threadOP))
         .then((thread) => {
@@ -218,6 +236,7 @@ exports.onLynch = function() {
     
     if (won) {
         return internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!')
+            .then(() => endGame())
             .then(() => exports.deactivate());
     } else {
         return exports.onDayEnd();
@@ -237,6 +256,7 @@ exports.onNightEnd = function onNightEnd() {
     
     if (won) {
         return internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!')
+            .then(() => endGame())
             .then(() => exports.deactivate());
     } else {
         return internals.game.newDay()
@@ -290,11 +310,21 @@ exports.load = function() {
     return new Promise((resolve, reject) => {
         fs.readFile('autoGMdata', (err, d) => {
           if (err)  {
+              if (err.code === 'ENOENT' ) {
+                  resolve(false);
+                  return;
+              }
               reject(err);
               return;
           }
+          let data;
           
-          const data = JSON.parse(d);
+          try {
+            data = JSON.parse(d);
+          } catch (e) {
+              resolve(false);
+              return;
+          }
           
           if (data.scum) {
               internals.scum = data.scum;
@@ -310,9 +340,10 @@ exports.load = function() {
                       internals.timer.callback = exports.onNightEnd;
                   }
               }
+               resolve(true);
+          } else {
+              resolve(false);
           }
-          
-          resolve();
         });
     });
 };

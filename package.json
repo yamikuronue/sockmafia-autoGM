@@ -22,6 +22,7 @@
   "dependencies": {
     "debug": "^2.2.0",
     "moment": "^2.14.1",
+    "rimraf-promise": "^2.0.0",
     "sockmafia": "sockdrawer/SockMafia#feature-autoGM"
   },
   "peerDependencies": {
