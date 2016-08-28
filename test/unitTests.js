@@ -828,6 +828,11 @@ describe('AutoGM', () => {
 			});
 		});
 		
+		it('should reject if an error occurs', () => {
+			fs.writeFile.throws('error');
+			return AutoGM.save().should.reject;
+		});
+		
 		it('should persist scum', () => {
 			AutoGM.internals.scum = ['player1', 'player2'];
 			return AutoGM.save().then(() => {
@@ -840,13 +845,13 @@ describe('AutoGM', () => {
 		it('should persist next alert date', () => {
 			AutoGM.internals.timer.nextAlert = new Moment();
 			AutoGM.internals.timer.callback = 'function';
-			const expected = AutoGM.internals.timer.nextAlert.toDate();
+			const expected = AutoGM.internals.timer.nextAlert.toISOString();;
 			
 			return AutoGM.save().then(() => {
 				const data = JSON.parse(fs.writeFile.firstCall.args[1]);
 				data.should.contain.key('timer');
 				data.timer.should.contain.key('nextAlert');
-				data.timer.nextAlert.should.equal(expected.toString());
+				data.timer.nextAlert.should.equal(expected);
 			});
 		});
 		
@@ -890,4 +895,96 @@ describe('AutoGM', () => {
 		});
 	});
 	
+	describe('load', () => {
+		const minFile = '{"scum": []}';
+		
+		beforeEach(() => {
+			sandbox.stub(fs, 'readFile');
+		});
+		
+		it('Should resolve on success', () => {
+			fs.readFile.yields(undefined, minFile);
+			AutoGM.load().should.resolve;
+		});
+		
+		it('Should reject on error', () => {
+			fs.readFile.yields('error', undefined);
+			AutoGM.load().should.reject;
+		});
+		
+		it('Should read the file', () => {
+			fs.readFile.yields(undefined, minFile);
+			return AutoGM.load().then(() => {
+				fs.readFile.should.have.been.called;
+			});
+		});
+		
+		it('Should read in the scum', () => {
+			AutoGM.internals.scum = [];
+			fs.readFile.yields(undefined, '{"scum": ["player1", "player2"]}');
+			return AutoGM.load().then(() => {
+				AutoGM.internals.scum.should.deep.equal(['player1', 'player2']);
+			});
+		});
+		
+		it('Should read in nextAlert', () => {
+			const expected = new Moment();
+			AutoGM.internals.timer.nextAlert = '';
+			fs.readFile.yields(undefined, JSON.stringify({
+				scum: [],
+				timer: {
+					nextAlert: expected.toISOString()
+				}
+			}));
+
+			return AutoGM.load().then(() => {
+				AutoGM.internals.timer.nextAlert.isSame(expected).should.be.true;
+			});
+		});
+		
+		it('Should deserialize callback from startGame', () => {
+			AutoGM.internals.timer.callback = undefined;
+			fs.readFile.yields(undefined, JSON.stringify({
+				scum: [],
+				timer: {
+					nextAlert: new Moment().toISOString(),
+					callback: 'startGame'
+				}
+			}));
+
+			return AutoGM.load().then(() => {
+				AutoGM.internals.timer.callback.should.equal(AutoGM.startGame);
+			});
+		});
+		
+		it('Should deserialize callback from onDayEnd', () => {
+			AutoGM.internals.timer.callback = undefined;
+			fs.readFile.yields(undefined, JSON.stringify({
+				scum: [],
+				timer: {
+					nextAlert: new Moment().toISOString(),
+					callback: 'onDayEnd'
+				}
+			}));
+
+			return AutoGM.load().then(() => {
+				AutoGM.internals.timer.callback.should.equal(AutoGM.onDayEnd);
+			});
+		});
+		
+		it('Should deserialize callback from onNightEnd', () => {
+			AutoGM.internals.timer.callback = undefined;
+			fs.readFile.yields(undefined, JSON.stringify({
+				scum: [],
+				timer: {
+					nextAlert: new Moment().toISOString(),
+					callback: 'onNightEnd'
+				}
+			}));
+
+			return AutoGM.load().then(() => {
+				AutoGM.internals.timer.callback.should.equal(AutoGM.onNightEnd);
+			});
+		});
+	});
 });

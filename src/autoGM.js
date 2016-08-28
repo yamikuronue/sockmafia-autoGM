@@ -277,11 +277,42 @@ exports.save = function() {
     };
     
     if (internals.timer.nextAlert && internals.timer.callback) {
-        persistData.timer.nextAlert = internals.timer.nextAlert.toDate().toString();
+        persistData.timer.nextAlert = internals.timer.nextAlert.toISOString();
         persistData.timer.callback = internals.timer.callback.name;
-    };
+    }
     
     return new Promise((resolve, reject) => {
         fs.writeFile('autoGMdata', JSON.stringify(persistData), 'utf8', resolve);
+    });
+};
+
+exports.load = function() {
+    return new Promise((resolve, reject) => {
+        fs.readFile('autoGMdata', (err, d) => {
+          if (err)  {
+              reject(err);
+              return;
+          }
+          
+          const data = JSON.parse(d);
+          
+          if (data.scum) {
+              internals.scum = data.scum;
+              
+              if (data.timer) {
+                  internals.timer.nextAlert = Moment(data.timer.nextAlert, Moment.ISO_8601);
+                  
+                  if (data.timer.callback === 'startGame') {
+                      internals.timer.callback = exports.startGame;
+                  } else if (data.timer.callback === 'onDayEnd') {
+                      internals.timer.callback = exports.onDayEnd;
+                  } else if (data.timer.callback === 'onNightEnd') {
+                      internals.timer.callback = exports.onNightEnd;
+                  }
+              }
+          }
+          
+          resolve();
+        });
     });
 };
