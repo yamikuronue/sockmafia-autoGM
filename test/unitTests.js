@@ -411,6 +411,64 @@ describe('AutoGM', () => {
 		});
 	});
 	
+	describe('sendRoleCard', () => {
+			let fakeForum;
+		
+		before(() => {
+			const fakeRoom = {
+				send: () => Promise.resolve(),
+				id: 1
+			};
+			
+			fakeForum = {
+				Post: {
+					reply: () => Promise.resolve()
+				},
+				Chat: {
+					create: sinon.stub().resolves(fakeRoom)
+				},
+				User: {
+					getByName: (name) => Promise.resolve({
+						username: name
+					})
+				},
+				removeListener: () => Promise.resolve()
+			};
+			
+			AutoGM.internals.forum = fakeForum;
+			
+			
+		});
+		
+		beforeEach(() => {
+			AutoGM.internals.game = {
+				livePlayers: [],
+				newDay: () => Promise.resolve(),
+				topicID: 123,
+				moderators: [],
+				addChat: () => 1,
+				setActive: () => 1,
+				setInactive: () => 1
+			};
+		});
+		
+		it('Should send Town rolecard to townies', () => {
+			AutoGM.internals.scum = [];
+			return AutoGM.sendRolecard(0, 'player').then(() => {
+				fakeForum.Chat.create.should.have.been.called;
+				fakeForum.Chat.create.firstCall.args[1].should.contain('Vanilla Town');
+			});
+		});
+		
+		it('Should send Scum rolecard to scum', () => {
+			AutoGM.internals.scum = ['player'];
+			return AutoGM.sendRolecard(0, 'player').then(() => {
+				fakeForum.Chat.create.should.have.been.called;
+				fakeForum.Chat.create.firstCall.args[1].should.contain('Mafia Goon');
+			});
+		});
+	});
+	
 	describe('onDayEnd', () => {
 		let fakeForum;
 		

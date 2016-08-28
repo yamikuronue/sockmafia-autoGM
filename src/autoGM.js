@@ -124,7 +124,7 @@ exports.init = function() {
 
 exports.sendRolecard = function(index, username) {
     let message, target;
-    if (internals.scum.indexOf(username)) {
+    if (internals.scum.indexOf(username) > -1) {
         message = 'You are a Mafia Goon!\n' +
             'Every night, you and your companions may choose to kill one person.\n' +
             'You win when the number of Mafia Goons is equal to or greater than the number of Town players';
