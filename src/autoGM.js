@@ -293,6 +293,7 @@ exports.checkWin = function() {
 exports.save = function() {
     const persistData = {
         scum: internals.scum,
+        thread: internals.game.topicId,
         timer: { }
     };
     
@@ -340,7 +341,11 @@ exports.load = function() {
                       internals.timer.callback = exports.onNightEnd;
                   }
               }
-               resolve(true);
+              
+               SockMafia.internals.dao.getGameById(data.thread).then((g) => {
+                   internals.game = g;
+                   resolve(true);
+               });
           } else {
               resolve(false);
           }

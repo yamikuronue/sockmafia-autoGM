@@ -864,6 +864,17 @@ describe('AutoGM', () => {
 			});
 		});
 		
+		it('should persist game thread', () => {
+			AutoGM.internals.game = {
+				topicId: 123
+			};
+			return AutoGM.save().then(() => {
+				const data = JSON.parse(fs.writeFile.firstCall.args[1]);
+				data.should.contain.key('thread');
+				data.thread.should.equal(123);
+			});
+		});
+		
 		it('should persist next alert date', () => {
 			AutoGM.internals.timer.nextAlert = new Moment();
 			AutoGM.internals.timer.callback = 'function';
@@ -918,10 +929,16 @@ describe('AutoGM', () => {
 	});
 	
 	describe('load', () => {
-		const minFile = '{"scum": []}';
+		const minFile = '{"scum": [], "thread": 123}';
+		const fakeGame = {
+					topicId: 123
+				};
 		
 		beforeEach(() => {
 			sandbox.stub(fs, 'readFile');
+			SockMafia.internals.dao = {
+				getGameById: () => Promise.resolve(fakeGame)
+			};
 		});
 		
 		it('Should resolve on success', () => {
@@ -966,6 +983,17 @@ describe('AutoGM', () => {
 			return AutoGM.load().then((result) => {
 				AutoGM.internals.scum.should.deep.equal([]);
 				result.should.be.false;
+			});
+		});
+		
+		it('Should retrieve the game', () => {
+			AutoGM.internals.game = undefined;
+			fs.readFile.yields(undefined, minFile);
+			sandbox.spy(SockMafia.internals.dao, 'getGameById');
+
+			return AutoGM.load().then(() => {
+				SockMafia.internals.dao.getGameById.should.have.been.called;
+				AutoGM.internals.game.should.deep.equal(fakeGame);
 			});
 		});
 		
