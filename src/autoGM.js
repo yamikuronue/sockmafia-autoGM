@@ -50,7 +50,7 @@ exports.deactivate = function deactivate() {
 function endGame() {
     internals.game = undefined;
     return rimrafPromise('autoGMdata');
-};
+}
 
 
 /**
@@ -152,7 +152,7 @@ exports.sendRolecard = function(index, username) {
             'You win when all Mafia Goons are dead.';
     }
 
-    return new Promise( (resolve, reject) => {
+    return new Promise( (resolve) => {
             //Insert a delay to stop them from all firing off at once
             setTimeout(resolve, 1000 * index);
         })
@@ -267,7 +267,7 @@ exports.onNightEnd = function onNightEnd() {
 
 exports.checkWin = function() {
     debug('Checking for win');
-    let scum = 0; 
+    let scum = 0;
     let town = 0;
 
     const players = internals.game.livePlayers;
@@ -302,7 +302,7 @@ exports.save = function() {
         persistData.timer.callback = internals.timer.callback.name;
     }
     
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         fs.writeFile('autoGMdata', JSON.stringify(persistData), 'utf8', resolve);
     });
 };
@@ -342,8 +342,10 @@ exports.load = function() {
                   }
               }
               
-               SockMafia.internals.dao.getGameById(data.thread).then((g) => {
+               SockMafia.internals.dao.getGameByTopicId(data.thread).then((g) => {
                    internals.game = g;
+                   resolve(true);
+               }).catch((_) => {
                    resolve(true);
                });
           } else {

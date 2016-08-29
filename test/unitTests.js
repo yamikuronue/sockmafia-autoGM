@@ -60,7 +60,7 @@ describe('AutoGM', () => {
 		it('should capture timer lengths', () => {
 			const configWithPhases = {
 				phases: {
-					day: '1 hour', 
+					day: '1 hour',
 					night: '2 hours',
 					init: '3 hours'
 				}
@@ -347,7 +347,7 @@ describe('AutoGM', () => {
 			return AutoGM.startGame().then(() => {
 				AutoGM.deactivate.should.have.been.called;
 			});
-		});		
+		});
 		
 		it('Should start day 1 with 6 players', () => {
 			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
@@ -842,6 +842,9 @@ describe('AutoGM', () => {
 	describe('save', () => {
 		beforeEach(() => {
 			sandbox.stub(fs, 'writeFile').yields();
+			SockMafia.internals.dao = {
+				save: sandbox.stub()
+			};
 		});
 		
 		it('should persist to disc', () => {
@@ -878,7 +881,7 @@ describe('AutoGM', () => {
 		it('should persist next alert date', () => {
 			AutoGM.internals.timer.nextAlert = new Moment();
 			AutoGM.internals.timer.callback = 'function';
-			const expected = AutoGM.internals.timer.nextAlert.toISOString();;
+			const expected = AutoGM.internals.timer.nextAlert.toISOString();
 			
 			return AutoGM.save().then(() => {
 				const data = JSON.parse(fs.writeFile.firstCall.args[1]);
@@ -937,7 +940,7 @@ describe('AutoGM', () => {
 		beforeEach(() => {
 			sandbox.stub(fs, 'readFile');
 			SockMafia.internals.dao = {
-				getGameById: () => Promise.resolve(fakeGame)
+				getGameByTopicId: () => Promise.resolve(fakeGame)
 			};
 		});
 		
@@ -989,10 +992,10 @@ describe('AutoGM', () => {
 		it('Should retrieve the game', () => {
 			AutoGM.internals.game = undefined;
 			fs.readFile.yields(undefined, minFile);
-			sandbox.spy(SockMafia.internals.dao, 'getGameById');
+			sandbox.spy(SockMafia.internals.dao, 'getGameByTopicId');
 
 			return AutoGM.load().then(() => {
-				SockMafia.internals.dao.getGameById.should.have.been.called;
+				SockMafia.internals.dao.getGameByTopicId.should.have.been.called;
 				AutoGM.internals.game.should.deep.equal(fakeGame);
 			});
 		});
