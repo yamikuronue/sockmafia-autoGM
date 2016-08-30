@@ -189,7 +189,7 @@ exports.startGame = function startGame() {
         const scumUsers = [];
         for (let i = 0; i < players.length; i++) {
             const promise = exports.sendRolecard(i, players[i].username).then((target) => {
-                if (internals.scum.indexOf(players[i].username) > -1) {
+                if (internals.scum.includes(players[i].username)) {
                     scumUsers.push(target);
                 }
             });
