@@ -189,7 +189,7 @@ exports.startGame = function startGame() {
         const scumUsers = [];
         for (let i = 0; i < players.length; i++) {
             const promise = exports.sendRolecard(i, players[i].username).then((target) => {
-                if (internals.scum.indexOf(players[i].username)) {
+                if (internals.scum.indexOf(players[i].username) > -1) {
                     scumUsers.push(target);
                 }
             });
@@ -198,7 +198,7 @@ exports.startGame = function startGame() {
         
         return Promise.all(rolePromises)
             .then(() => internals.game.setActive())
-            .then(() => internals.game.newDay())
+            //.then(() => internals.game.newDay()) //This I believe is unnecessary as it results in day 2.
             .then(() => {
                 //Scum chat
                 return internals.forum.Chat.create(scumUsers, 'This is the Scum Talk thread. You may talk in this thread at any time.',

@@ -308,7 +308,7 @@ describe('AutoGM', () => {
 				setInactive: () => 1
 			};
 			
-			sandbox.stub(AutoGM, 'sendRolecard').resolves();
+			sandbox.stub(AutoGM, 'sendRolecard', (index, user) => Promise.resolve(fakeForum.User.getByName(user)));
 		});
 		
 		function player(p) {
@@ -352,13 +352,13 @@ describe('AutoGM', () => {
 		it('Should start day 1 with 6 players', () => {
 			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
 			sandbox.spy(AutoGM, 'deactivate');
-			sandbox.spy(AutoGM.internals.game, 'newDay');
+			sandbox.spy(AutoGM.internals.game, 'setActive');
 			sandbox.spy(fakeForum.Post, 'reply');
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			
 			return AutoGM.startGame().then(() => {
 				AutoGM.deactivate.should.not.have.been.called;
-				AutoGM.internals.game.newDay.should.have.been.called;
+				AutoGM.internals.game.setActive.should.have.been.called;
 				fakeForum.Post.reply.should.have.been.called;
 			});
 		});
@@ -410,21 +410,24 @@ describe('AutoGM', () => {
 		it('Should create a scum chat', () => {
 			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
 			sandbox.spy(fakeForum.Chat, 'create');
+			AutoGM.internals.scum = [];
 			
 			return AutoGM.startGame().then(() => {
 				fakeForum.Chat.create.should.have.been.called;
+				const scumList = fakeForum.Chat.create.firstCall.args[0].map((value) => value.username);
+				scumList.should.include('one');
+				scumList.should.include('two');
+				scumList.should.not.include('three');
 			});
 		});
 		
 		it('Should start the day', () => {
 			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
 			sandbox.spy(AutoGM.internals.game, 'setActive');
-			sandbox.spy(AutoGM.internals.game, 'newDay');
 			sandbox.spy(fakeForum.Post, 'reply');
 
 			return AutoGM.startGame().then(() => {
 				AutoGM.internals.game.setActive.should.have.been.called;
-				AutoGM.internals.game.newDay.should.have.been.called;
 				fakeForum.Post.reply.should.have.been.called;
 			});
 		});
