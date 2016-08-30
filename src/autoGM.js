@@ -189,7 +189,7 @@ exports.startGame = function startGame() {
         const scumUsers = [];
         for (let i = 0; i < players.length; i++) {
             const promise = exports.sendRolecard(i, players[i].username).then((target) => {
-                if (internals.scum.includes(players[i].username)) {
+                if (internals.scum.indexOf(players[i].username) > -1) {
                     scumUsers.push(target);
                 }
             });
@@ -208,6 +208,7 @@ exports.startGame = function startGame() {
             .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'Let the game begin! It is now day. The day will end in ' + internals.config.phases.day))
             .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd))
             .catch((err) => {
+                debug(err);
                 return internals.forum.Post.reply(internals.game.topicId, undefined, ':wtf: Sorry folks, I need to cancel this one; I\'ve hit an error. \n Error was: ' + err)
                     .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, err.stack))
                     .then(() => internals.game.setInactive())
