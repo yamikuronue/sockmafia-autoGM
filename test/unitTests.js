@@ -579,10 +579,12 @@ describe('AutoGM', () => {
 			});
 			
 			sandbox.spy(AutoGM.internals.game, 'killPlayer');
+			sandbox.spy(AutoGM, 'postFlip');
 			sandbox.stub(AutoGM, 'checkWin').returns(false);
 			
 			return AutoGM.onNightEnd().then(() => {
 				AutoGM.internals.game.killPlayer.should.have.been.calledWith('johnny');
+				AutoGM.postFlip.should.have.been.calledWith('johnny');
 			});
 		});
 		

@@ -167,6 +167,23 @@ exports.sendRolecard = function(index, username) {
         });
 };
 
+
+exports.postFlip = function postFlip(username) {
+    
+    let message = 'Role card for **' + username + '**:\n';
+    if (internals.scum.indexOf(username) > -1) {
+        message += 'You are a Mafia Goon!\n' +
+            'Every night, you and your companions may choose to kill one person.\n' +
+            'You win when the number of Mafia Goons is equal to or greater than the number of Town players';
+    } else {
+        message += 'You are a Vanilla Town!\n' +
+            'Your only ability is the daytime vote. Choose wisely!\n' +
+            'You win when all Mafia Goons are dead.';
+    }
+
+    return internals.forum.Post.reply(internals.game.topicId, undefined, message);
+};
+
 exports.startGame = function startGame() {
     debug('Running game start routine');
     const players = internals.game.livePlayers;
@@ -233,6 +250,7 @@ exports.onDayEnd = function onDayEnd() {
 exports.onLynch = function() {
     debug('running Lynch routine');
     exports.cancelTimer();
+    
     const won = exports.checkWin();
     
     if (won) {
@@ -248,22 +266,26 @@ exports.onNightEnd = function onNightEnd() {
     debug('running Night End routine');
     const action = internals.game.getActionOfType('target', null, 'scum', null, false);
 	
-	if (action) {
-        //Kill the scum's pick
-        internals.game.killPlayer(action.target);
-	}
-				
-    const won = exports.checkWin();
-    
-    if (won) {
-        return internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!')
-            .then(() => endGame())
-            .then(() => exports.deactivate());
-    } else {
-        return internals.game.newDay()
-        .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'It is now day. Day will end in ' + internals.config.phases.day))
-        .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd));
-    }
+	return new Promise((resolve, reject) => {
+        if (action) {
+            //Kill the scum's pick
+            internals.game.killPlayer(action.target);
+            exports.postFlip(action.target).then(() => resolve()).catch((err) => reject(err));
+        } else {
+             resolve();
+        }
+    }).then(() => {
+        const won = exports.checkWin();
+        if (won) {
+            return internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!')
+                .then(() => endGame())
+                .then(() => exports.deactivate());
+        } else {
+            return internals.game.newDay()
+            .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'It is now day. Day will end in ' + internals.config.phases.day))
+            .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd));
+        }
+	});
 };
 
 exports.checkWin = function() {
