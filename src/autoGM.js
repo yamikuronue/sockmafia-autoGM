@@ -170,7 +170,9 @@ exports.sendRolecard = function(index, username) {
 
 exports.postFlip = function postFlip(username) {
     
-    let message = 'Role card for **' + username + '**:\n';
+    let message = `**${username}** has died!`;
+    
+    message += 'Role card: \n';
     if (internals.scum.indexOf(username) > -1) {
         message += 'You are a Mafia Goon!\n' +
             'Every night, you and your companions may choose to kill one person.\n' +
