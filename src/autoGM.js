@@ -208,6 +208,7 @@ exports.startGame = function startGame() {
             const promise = exports.sendRolecard(i, players[i].username).then((target) => {
                 if (internals.scum.indexOf(players[i].username) > -1) {
                     scumUsers.push(target);
+                    players[i].addProperty('scum');
                 }
             });
             rolePromises.push(promise);
@@ -270,9 +271,9 @@ exports.onNightEnd = function onNightEnd() {
         if (action) {
             //Kill the scum's pick
             internals.game.killPlayer(action.target);
-            exports.postFlip(action.target).then(() => resolve()).catch((err) => reject(err));
+            exports.postFlip(action.target.username).then(() => resolve()).catch((err) => reject(err));
         } else {
-             resolve();
+            return internals.forum.Post.reply(internals.game.topicId, undefined, 'The night was quiet.').then(() => resolve);
         }
     }).then(() => {
         const won = exports.checkWin();
