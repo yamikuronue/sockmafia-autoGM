@@ -672,18 +672,13 @@ describe('AutoGM', () => {
 				AutoGM.setTimer.firstCall.args[1].should.equal(AutoGM.onDayEnd);
 			});
 		});
-		
-		/* Output:
-			- firstCall: so-and-so was killed
-			- secondCall: end of game flavor text
-			- thirdCall: **winner** won! 
-		*/
+
 		it('Should post if town Won', () => {
 			sandbox.stub(AutoGM, 'checkWin').returns('Town');
 			sandbox.spy(fakeForum.Post, 'reply');
 			return AutoGM.onNightEnd().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
-				fakeForum.Post.reply.thirdCall.args[2].should.include('Town');
+				fakeForum.Post.reply.secondCall.args[2].should.include('Town won');
 			});
 		});
 		
@@ -692,7 +687,7 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeForum.Post, 'reply');
 			return AutoGM.onNightEnd().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
-				fakeForum.Post.reply.thirdCall.args[2].should.include('Scum');
+				fakeForum.Post.reply.secondCall.args[2].should.include('Scum won');
 			});
 		});
 		
@@ -742,7 +737,7 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeForum.Post, 'reply');
 			return AutoGM.onLynch().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
-				fakeForum.Post.reply.secondCall.args[2].should.include('Town');
+				fakeForum.Post.reply.firstCall.args[2].should.include('Town');
 			});
 		});
 		
@@ -751,7 +746,7 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeForum.Post, 'reply');
 			return AutoGM.onLynch().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
-				fakeForum.Post.reply.secondCall.args[2].should.include('Scum');
+				fakeForum.Post.reply.firstCall.args[2].should.include('Scum');
 			});
 		});
 		
