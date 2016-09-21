@@ -20,6 +20,7 @@ describe('AutoGM', () => {
 	
 	beforeEach(() => {
 		sandbox = sinon.sandbox.create();
+		AutoGM.internals.flavor = 'normal'; //don't let weird flavors break tests
 	});
 	
 	afterEach(() => {
@@ -230,6 +231,10 @@ describe('AutoGM', () => {
 			AutoGM.internals.myName = 'aBot';
 		});
 		
+		beforeEach(() => {
+			sandbox.stub(Math, 'random').returns(0);
+		});
+		
 		it('Should create a thread', () => {
 			sandbox.spy(fakeCat, 'addTopic');
 			return AutoGM.createGame().then(() => {
@@ -256,6 +261,14 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeDao, 'createGame');
 			return AutoGM.createGame().then(() => {
 				fakeDao.createGame.should.have.been.calledWith(fakeTopic.id);
+			});
+		});
+		
+		it('Should pick a flavor', () => {
+			AutoGM.internals.flavor = 'weird';
+			return AutoGM.createGame().then(() => {
+				Math.random.should.have.been.called;
+				AutoGM.internals.flavor.should.equal('normal');
 			});
 		});
 		
@@ -660,12 +673,17 @@ describe('AutoGM', () => {
 			});
 		});
 		
+		/* Output:
+			- firstCall: so-and-so was killed
+			- secondCall: end of game flavor text
+			- thirdCall: **winner** won! 
+		*/
 		it('Should post if town Won', () => {
 			sandbox.stub(AutoGM, 'checkWin').returns('Town');
 			sandbox.spy(fakeForum.Post, 'reply');
 			return AutoGM.onNightEnd().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
-				fakeForum.Post.reply.secondCall.args[2].should.include('Town');
+				fakeForum.Post.reply.thirdCall.args[2].should.include('Town');
 			});
 		});
 		
@@ -674,7 +692,7 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeForum.Post, 'reply');
 			return AutoGM.onNightEnd().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
-				fakeForum.Post.reply.secondCall.args[2].should.include('Scum');
+				fakeForum.Post.reply.thirdCall.args[2].should.include('Scum');
 			});
 		});
 		
@@ -724,7 +742,7 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeForum.Post, 'reply');
 			return AutoGM.onLynch().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
-				fakeForum.Post.reply.firstCall.args[2].should.include('Town');
+				fakeForum.Post.reply.secondCall.args[2].should.include('Town');
 			});
 		});
 		
@@ -733,7 +751,7 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeForum.Post, 'reply');
 			return AutoGM.onLynch().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
-				fakeForum.Post.reply.firstCall.args[2].should.include('Scum');
+				fakeForum.Post.reply.secondCall.args[2].should.include('Scum');
 			});
 		});
 		
@@ -921,6 +939,15 @@ describe('AutoGM', () => {
 			});
 		});
 		
+		it('should persist flavor', () => {
+			AutoGM.internals.flavor = 'Strawberry';
+			return AutoGM.save().then(() => {
+				const data = JSON.parse(fs.writeFile.firstCall.args[1]);
+				data.should.contain.key('flavor');
+				data.flavor.should.equal('Strawberry');
+			});
+		});
+		
 		it('should persist next alert date', () => {
 			AutoGM.internals.timer.nextAlert = new Moment();
 			AutoGM.internals.timer.callback = 'function';
@@ -1048,6 +1075,14 @@ describe('AutoGM', () => {
 			fs.readFile.yields(undefined, '{"scum": ["player1", "player2"]}');
 			return AutoGM.load().then(() => {
 				AutoGM.internals.scum.should.deep.equal(['player1', 'player2']);
+			});
+		});
+		
+		it('Should read in the flavor', () => {
+			AutoGM.internals.flavor = 'Vanilla';
+			fs.readFile.yields(undefined, '{"scum": ["player1", "player2"],"flavor": "Chocolate"}');
+			return AutoGM.load().then(() => {
+				AutoGM.internals.flavor.should.equal('Chocolate');
 			});
 		});
 		
