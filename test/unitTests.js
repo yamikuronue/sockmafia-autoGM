@@ -1120,11 +1120,11 @@ describe('viewHelper', () => {
 			const output = viewHelper.drawBoxAroundText(text);
 			const outlines = output.split('\n');
 			
-			outlines[0].should.equal('============================');
-			outlines[1].should.equal('| This is a line length 24 |');
-			outlines[2].should.equal('| And a short one          |');
-			outlines[3].should.equal('| And so on                |');
-			outlines[4].should.equal('============================');
+			outlines[0].should.equal('╔══════════════════════════╗');
+			outlines[1].should.equal('║ This is a line length 24 ║');
+			outlines[2].should.equal('║ And a short one          ║');
+			outlines[3].should.equal('║ And so on                ║');
+			outlines[4].should.equal('╚══════════════════════════╝');
 
 		});
 	});
