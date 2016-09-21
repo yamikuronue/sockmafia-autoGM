@@ -248,4 +248,87 @@ describe('AutoGM Games', function() {
 		- Night 1: kill scum (1:5)
 		- Day 2: lynch scum (0:4, town win)
 	*/
+	it('Scenario 3', () => {
+		sandbox.spy(fakeForum.Post, 'reply');
+		//Step 1: game setup triggered
+		return AutoGM.createGame().then(() => {
+			//validate
+			fakeForum.Post.reply.should.have.been.calledWith(1234, undefined);
+			fakeForum.Post.reply.firstCall.args[2].should.include('Signups are now open!');
+			fakeForum.Post.reply.reset();
+			
+			//force normal flavor
+			AutoGM.internals.flavor = 'normal';
+			
+			//sending rolecards is very slow
+			sandbox.stub(AutoGM, 'sendRolecard').resolves();
+		//Step 2: eight people join
+			return Promise.all([
+				AutoGM.internals.game.addPlayer('player1'),
+				AutoGM.internals.game.addPlayer('player2'),
+				AutoGM.internals.game.addPlayer('player3'),
+				AutoGM.internals.game.addPlayer('player4'),
+				AutoGM.internals.game.addPlayer('player5'),
+				AutoGM.internals.game.addPlayer('player6'),
+			]);
+		
+		})
+		//Step 3: Game start timer expires
+		.then(() => AutoGM.startGame())
+		.then(() => {
+			//validate
+			AutoGM.sendRolecard.should.have.callCount(6);
+			fakeForum.Post.reply.should.have.been.calledWith(1234, undefined);
+			fakeForum.Post.reply.firstCall.args[2].should.include('Your little town has been under seige');
+			fakeForum.Post.reply.secondCall.args[2].should.include('Let the game begin! It is now day.');
+			fakeForum.Post.reply.reset();
+			
+		//Step 4: Lynch scum	
+											
+			return AutoGM.internals.game.killPlayer(AutoGM.internals.scum[0])
+			//Step 4.5: mafia sends a signal to AutoGM
+			.then(() => AutoGM.onLynch(AutoGM.internals.scum[0]));
+		})
+		.then(() => {
+			//validate
+			fakeForum.Post.reply.should.have.been.calledWith(1234, undefined);
+			fakeForum.Post.reply.firstCall.args[2].should.include('has died!');
+			fakeForum.Post.reply.firstCall.args[2].should.include('Mafia Goon');
+			fakeForum.Post.reply.secondCall.args[2].should.include('It is now night.');
+			fakeForum.Post.reply.reset();
+			
+		//Step 5: Kill a townie
+			let target;
+			for (let i = 6; i >= 3; i--) {
+				if (AutoGM.internals.scum.indexOf(`player${i}`) === -1) {
+					target = `player${i}`;
+					break;
+				}
+			}
+			return AutoGM.internals.game.registerAction(123, AutoGM.internals.scum[1], target, 'target', 'scum');
+		})
+		//Step 6: Night timer expires
+		.then(() => AutoGM.onNightEnd())
+		.then(() => {
+			//validate
+			fakeForum.Post.reply.should.have.been.calledWith(1234, undefined);
+			fakeForum.Post.reply.firstCall.args[2].should.include('has died!');
+			fakeForum.Post.reply.firstCall.args[2].should.include('Vanilla Town');
+			fakeForum.Post.reply.reset();
+			
+					
+		//Step 7: Lynch scum	
+											
+			return AutoGM.internals.game.killPlayer(AutoGM.internals.scum[1])
+			//Step 4.5: mafia sends a signal to AutoGM
+			.then(() => AutoGM.onLynch(AutoGM.internals.scum[1]));
+		}).then(() => {
+			//validate
+			fakeForum.Post.reply.should.have.been.calledWith(1234, undefined);
+			fakeForum.Post.reply.firstCall.args[2].should.include('has died!');
+			fakeForum.Post.reply.firstCall.args[2].should.include('Mafia Goon');
+			fakeForum.Post.reply.secondCall.args[2].should.include('Town won');
+			fakeForum.Post.reply.reset();
+		});
+	});
 });
