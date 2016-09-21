@@ -361,6 +361,7 @@ exports.save = function() {
     const persistData = {
         scum: internals.scum,
         thread: internals.game.topicId,
+        flavor: internals.flavor,
         timer: { }
     };
     
@@ -396,6 +397,7 @@ exports.load = function() {
           
           if (data.scum) {
               internals.scum = data.scum;
+              internals.flavor = data.flavor;
               
               if (data.timer) {
                   internals.timer.nextAlert = Moment(data.timer.nextAlert, Moment.ISO_8601);

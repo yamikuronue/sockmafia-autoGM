@@ -939,6 +939,15 @@ describe('AutoGM', () => {
 			});
 		});
 		
+		it('should persist flavor', () => {
+			AutoGM.internals.flavor = 'Strawberry';
+			return AutoGM.save().then(() => {
+				const data = JSON.parse(fs.writeFile.firstCall.args[1]);
+				data.should.contain.key('flavor');
+				data.flavor.should.equal('Strawberry');
+			});
+		});
+		
 		it('should persist next alert date', () => {
 			AutoGM.internals.timer.nextAlert = new Moment();
 			AutoGM.internals.timer.callback = 'function';
@@ -1066,6 +1075,14 @@ describe('AutoGM', () => {
 			fs.readFile.yields(undefined, '{"scum": ["player1", "player2"]}');
 			return AutoGM.load().then(() => {
 				AutoGM.internals.scum.should.deep.equal(['player1', 'player2']);
+			});
+		});
+		
+		it('Should read in the flavor', () => {
+			AutoGM.internals.flavor = 'Vanilla';
+			fs.readFile.yields(undefined, '{"scum": ["player1", "player2"],"flavor": "Chocolate"}');
+			return AutoGM.load().then(() => {
+				AutoGM.internals.flavor.should.equal('Chocolate');
 			});
 		});
 		
