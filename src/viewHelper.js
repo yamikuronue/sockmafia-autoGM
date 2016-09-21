@@ -29,7 +29,7 @@ module.exports = {
             }
             lines[i] = `║ ${lines[i]}${padding} ║`;
         }
-        output += `╔${longEdge}╗\n${lines.join('\n')}\n╚${longEdge}╝`;
+        output += `╔${longEdge}╗\n${lines.join('\n')}\n╚${longEdge}╝\n`;
         return output;
     }
 };
