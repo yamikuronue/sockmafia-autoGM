@@ -28,7 +28,8 @@ describe('AutoGM', () => {
 	
 	describe('plugin', () => {
 		const fakeConfig = {
-			category: 12
+			category: 12,
+			minPlayers: 7
 		};
 
 		const fakeForum = {
@@ -67,6 +68,20 @@ describe('AutoGM', () => {
 			};
 			AutoGM.plugin(fakeForum, configWithPhases);
 			AutoGM.internals.config.phases.should.deep.equal(configWithPhases.phases);
+		});
+		
+		it('should capture minimum players', () => {
+			AutoGM.plugin(fakeForum, fakeConfig);
+			AutoGM.internals.config.minPlayers.should.equal(fakeConfig.minPlayers);
+		});
+		
+		it('should enforce a bare minimum of 2 players', () => {
+			const configWithMinimalPlayers = {
+				minPlayers: 0
+			};
+			
+			AutoGM.plugin(fakeForum, configWithMinimalPlayers);
+			AutoGM.internals.config.minPlayers.should.equal(2);
 		});
 	});
 
@@ -294,6 +309,8 @@ describe('AutoGM', () => {
 			
 			AutoGM.internals.forum = fakeForum;
 			
+			//Use default config
+			AutoGM.internals.config = AutoGM.defaultConfig;
 			
 		});
 		
@@ -304,8 +321,8 @@ describe('AutoGM', () => {
 				topicID: 123,
 				moderators: [],
 				addChat: () => 1,
-				setActive: () => 1,
-				setInactive: () => 1
+				setActive: () => Promise.resolve(),
+				setInactive: () => Promise.resolve()
 			};
 			
 			sandbox.stub(AutoGM, 'sendRolecard', (index, user) => Promise.resolve(fakeForum.User.getByName(user)));
@@ -313,7 +330,8 @@ describe('AutoGM', () => {
 		
 		function player(p) {
 			return {
-				username: p
+				username: p,
+				addProperty: sandbox.stub().resolves()
 			};
 		}
 		
@@ -383,6 +401,11 @@ describe('AutoGM', () => {
 				AutoGM.internals.scum.should.include('two');
 				AutoGM.internals.scum.should.include('three');
 				AutoGM.internals.scum.should.not.include('four');
+				
+				AutoGM.internals.game.livePlayers[0].addProperty.should.have.been.calledWith('scum');
+				AutoGM.internals.game.livePlayers[1].addProperty.should.have.been.calledWith('scum');
+				AutoGM.internals.game.livePlayers[2].addProperty.should.have.been.calledWith('scum');
+				AutoGM.internals.game.livePlayers[3].addProperty.should.not.have.been.calledWith('scum');
 			});
 		});
 		
@@ -433,7 +456,7 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should chill for three days', () => {
-			AutoGM.internals.game.livePlayers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			const expected = '72 hours';
 			
@@ -575,7 +598,9 @@ describe('AutoGM', () => {
 		it('Should kill scum\'s pick', () => {
 			sandbox.stub(AutoGM.internals.game, 'getActionOfType').returns({
 				isCurrent: true,
-				target: 'johnny'
+				target: {
+					username: 'johnny'
+				}
 			});
 			
 			sandbox.spy(AutoGM.internals.game, 'killPlayer');
@@ -583,7 +608,7 @@ describe('AutoGM', () => {
 			sandbox.stub(AutoGM, 'checkWin').returns(false);
 			
 			return AutoGM.onNightEnd().then(() => {
-				AutoGM.internals.game.killPlayer.should.have.been.calledWith('johnny');
+				AutoGM.internals.game.killPlayer.should.have.been.calledWith({username: 'johnny'});
 				AutoGM.postFlip.should.have.been.calledWith('johnny');
 			});
 		});
@@ -591,9 +616,11 @@ describe('AutoGM', () => {
 		it('Should not kill if scum missed the buzzer', () => {
 			sandbox.spy(AutoGM.internals.game, 'killPlayer');
 			sandbox.stub(AutoGM, 'checkWin').returns(false);
+			sandbox.spy(fakeForum.Post, 'reply');
 			
 			return AutoGM.onNightEnd().then(() => {
 				AutoGM.internals.game.killPlayer.should.not.have.been.called;
+				fakeForum.Post.reply.should.have.been.called;
 			});
 		});
 		
@@ -637,7 +664,7 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeForum.Post, 'reply');
 			return AutoGM.onNightEnd().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
-				fakeForum.Post.reply.firstCall.args[2].should.include('Town');
+				fakeForum.Post.reply.secondCall.args[2].should.include('Town');
 			});
 		});
 		
@@ -646,7 +673,7 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeForum.Post, 'reply');
 			return AutoGM.onNightEnd().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
-				fakeForum.Post.reply.firstCall.args[2].should.include('Scum');
+				fakeForum.Post.reply.secondCall.args[2].should.include('Scum');
 			});
 		});
 		
@@ -679,6 +706,16 @@ describe('AutoGM', () => {
 				nextPhase: () => Promise.resolve(),
 				topicID: 123
 			};
+			
+			sandbox.stub(AutoGM, 'postFlip').resolves();
+		});
+		
+		it('Should post the flip', () => {
+			sandbox.stub(AutoGM, 'checkWin').returns('Town');
+			sandbox.spy(fakeForum.Post, 'reply');
+			return AutoGM.onLynch('someone').then(() => {
+				AutoGM.postFlip.should.have.been.calledWith('someone');
+			});
 		});
 		
 		it('Should post if town Won', () => {

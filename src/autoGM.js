@@ -22,6 +22,7 @@ exports.internals = internals;
 
 exports.defaultConfig = {
     category: 22,
+    minPlayers: 6,
     phases: {
         init: '48 hours',
         day: '72 hours',
@@ -68,12 +69,18 @@ exports.plugin = function plugin(forum, config) {
 	}
 	
 	Object.keys(exports.defaultConfig).forEach((key) => {
-		if (!config[key]) {
+		if (!(key in config)) {
 			config[key] = exports.defaultConfig[key];
 		}
 	});
     
     internals.config = config;
+    
+    //Enforce absolute minimum
+    if (internals.config.minPlayers < 2) {
+        internals.config.minPlayers = 2;
+    }
+    
     return {
 		activate: exports.activate,
 		deactivate: exports.deactivate
@@ -190,7 +197,7 @@ exports.startGame = function startGame() {
     debug('Running game start routine');
     const players = internals.game.livePlayers;
     
-    if (players.length > 5) {
+    if (players.length >= internals.config.minPlayers) {
         //Pick scum
         internals.scum.push(players[0].username);
         internals.scum.push(players[1].username);
@@ -250,32 +257,35 @@ exports.onDayEnd = function onDayEnd() {
     .then(() => exports.setTimer(internals.config.phases.night, exports.onNightEnd));
 };
 
-exports.onLynch = function() {
+exports.onLynch = function(username) {
     debug('running Lynch routine');
     exports.cancelTimer();
     
-    const won = exports.checkWin();
-    
-    if (won) {
-        return internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!')
-            .then(() => endGame())
-            .then(() => exports.deactivate());
-    } else {
-        return exports.onDayEnd();
-    }
+    return exports.postFlip(username).then(() => {
+        const won = exports.checkWin();
+        
+        if (won) {
+            return internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!')
+                .then(() => endGame())
+                .then(() => exports.deactivate());
+        } else {
+            return exports.onDayEnd();
+        }
+            
+    });
 };
 
 exports.onNightEnd = function onNightEnd() {
     debug('running Night End routine');
     const action = internals.game.getActionOfType('target', null, 'scum', null, false);
 	
-	return new Promise((resolve, reject) => {
+	return Promise.resolve().then(() => {
         if (action) {
             //Kill the scum's pick
             internals.game.killPlayer(action.target);
-            exports.postFlip(action.target.username).then(() => resolve()).catch((err) => reject(err));
+            return exports.postFlip(action.target.username);
         } else {
-            return internals.forum.Post.reply(internals.game.topicId, undefined, 'The night was quiet.').then(() => resolve);
+            return internals.forum.Post.reply(internals.game.topicId, undefined, 'The night was quiet.');
         }
     }).then(() => {
         const won = exports.checkWin();
