@@ -69,12 +69,18 @@ exports.plugin = function plugin(forum, config) {
 	}
 	
 	Object.keys(exports.defaultConfig).forEach((key) => {
-		if (!config[key]) {
+		if (!(key in config)) {
 			config[key] = exports.defaultConfig[key];
 		}
 	});
     
     internals.config = config;
+    
+    //Enforce absolute minimum
+    if (internals.config.minPlayers < 2) {
+        internals.config.minPlayers = 2;
+    }
+    
     return {
 		activate: exports.activate,
 		deactivate: exports.deactivate
