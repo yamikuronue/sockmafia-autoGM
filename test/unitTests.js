@@ -20,6 +20,7 @@ describe('AutoGM', () => {
 	
 	beforeEach(() => {
 		sandbox = sinon.sandbox.create();
+		AutoGM.internals.flavor = 'normal'; //don't let weird flavors break tests
 	});
 	
 	afterEach(() => {
@@ -230,6 +231,10 @@ describe('AutoGM', () => {
 			AutoGM.internals.myName = 'aBot';
 		});
 		
+		beforeEach(() => {
+			sandbox.stub(Math, 'random').returns(0);
+		});
+		
 		it('Should create a thread', () => {
 			sandbox.spy(fakeCat, 'addTopic');
 			return AutoGM.createGame().then(() => {
@@ -256,6 +261,14 @@ describe('AutoGM', () => {
 			sandbox.spy(fakeDao, 'createGame');
 			return AutoGM.createGame().then(() => {
 				fakeDao.createGame.should.have.been.calledWith(fakeTopic.id);
+			});
+		});
+		
+		it('Should pick a flavor', () => {
+			AutoGM.internals.flavor = 'weird';
+			return AutoGM.createGame().then(() => {
+				Math.random.should.have.been.called;
+				AutoGM.internals.flavor.should.equal('normal');
 			});
 		});
 		

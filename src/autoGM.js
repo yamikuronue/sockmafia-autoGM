@@ -131,12 +131,21 @@ exports.init = function() {
     
 };
 
+function pickFlavor() {
+    const flavors = Object.keys(flavorText);
+    const numFlavors = flavors.length;
+    internals.flavor = flavors[Math.floor(Math.random() * numFlavors)];
+}
+
 exports.createGame = function() {
     let threadID;
     const threadTitle = 'Auto-generated Mafia Game Thread';
     const threadOP = 'This is an automatic mafia thread. This will be the main game thread for the game';
-    
+
     debug('Creating game');
+        
+    pickFlavor();
+    debug('Flavor is: ' + internals.flavor);
     
     return internals.forum.Category.get(internals.config.category).then((category) => category.addTopic(threadTitle, threadOP))
         .then((thread) => {
