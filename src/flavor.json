@@ -1,0 +1,11 @@
+{
+    "normal": {
+        "scum": "Mafia Goon",
+        "town": "Vanilla Townie",
+        "openingScene": "Your little town has been under seige by the villanous forces of the Mafia since time immemorial. Now, at last, you are taking a stand. The citizens of the town have banded together to form a tribunal: they will execute people one by one until the dastardly killings stop. Can you save your town before the mafia take over completely?",
+        "lynch": "As {{victim}} is marched up the stand, they face the crowd. A serene sort of acceptance washes over their face; whatever their deeds, it's all over now. And ten minutes later, only a corpse remains, dangling from the lynching rope in full view of the public.",
+        "kill": "As you gather in the square for today's tribunal, you notice that {{victim}} is missing. A quick search reveals the truth: {{victim}} has been slain in their bed overnight, a bullet left right between the eyes. The gory scene can only mean one thing: the mob has killed again.",
+        "scumWin": "The remaining mafia members reveal themselves, openly taking over the town. It becomes a place of lawlessness, run by the big don, where normal people fail to tread.",
+        "townWin": "As the last Mafia member dangles from the rope, a sense of profound relief washes over the remaining townsfolk. It will be alright now. Everything is fine once again. All you have to do is wash the last of the blood off your hands..."
+    }
+}
