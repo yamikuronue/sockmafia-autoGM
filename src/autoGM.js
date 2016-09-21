@@ -153,11 +153,11 @@ exports.sendRolecard = function(index, username) {
     let message, target;
     if (internals.scum.indexOf(username) > -1) {
         message = 'You are a Mafia Goon!\n' +
-            'Every night, you and your companions may choose to kill one person.\n' +
-            'You win when the number of Mafia Goons is equal to or greater than the number of Town players';
+            'Every night, you and your companions \nmay choose to kill one person.\n' +
+            'You win when the number of Mafia Goons \nis equal to or greater than the number of Town players';
     } else {
         message = 'You are a Vanilla Town!\n' +
-            'Your only ability is the daytime vote. Choose wisely!\n' +
+            'Your only ability is the daytime vote. \nChoose wisely!\n' +
             'You win when all Mafia Goons are dead.';
     }
     
