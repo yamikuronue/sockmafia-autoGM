@@ -5,6 +5,7 @@ const chai = require('chai'),
 	sinon = require('sinon');
 const SockMafia = require('sockmafia');
 const AutoGM = require('../src/autoGM');
+const viewHelper = require('../src/viewHelper');
 const Moment = require('moment');
 const fs = require('fs');
 
@@ -1108,6 +1109,23 @@ describe('AutoGM', () => {
 			return AutoGM.load().then(() => {
 				AutoGM.internals.timer.callback.should.equal(AutoGM.onNightEnd);
 			});
+		});
+	});
+});
+
+describe('viewHelper', () => {
+	describe('drawBoxAroundText', () => {
+		it('should return text with a box around it', () => {
+			const text = 'This is a line length 24\nAnd a short one\nAnd so on';
+			const output = viewHelper.drawBoxAroundText(text);
+			const outlines = output.split('\n');
+			
+			outlines[0].should.equal('============================');
+			outlines[1].should.equal('| This is a line length 24 |');
+			outlines[2].should.equal('| And a short one          |');
+			outlines[3].should.equal('| And so on                |');
+			outlines[4].should.equal('============================');
+
 		});
 	});
 });

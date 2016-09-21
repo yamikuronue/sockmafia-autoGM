@@ -5,6 +5,8 @@ const Moment = require('moment');
 const fs = require('fs');
 const rimrafPromise = require('rimraf-promise');
 
+const viewHelper = require('./viewHelper');
+
 let Forum, game;
 
 const internals = {
@@ -189,6 +191,8 @@ exports.postFlip = function postFlip(username) {
             'Your only ability is the daytime vote. Choose wisely!\n' +
             'You win when all Mafia Goons are dead.';
     }
+    
+    message = '\n```\n' + viewHelper.drawBoxAroundText(message) + '```\n';
 
     return internals.forum.Post.reply(internals.game.topicId, undefined, message);
 };
@@ -228,10 +232,15 @@ exports.startGame = function startGame() {
             //.then(() => internals.game.newDay()) //This I believe is unnecessary as it results in day 2.
             .then(() => {
                 //Scum chat
+                debug('Creating scum chat room');
                 return internals.forum.Chat.create(scumUsers, 'This is the Scum Talk thread. You may talk in this thread at any time.',
                                                 'Auto-generated Mafia Scum Talk');
             })
-            .then((chatroom) => internals.game.addChat(chatroom.id))
+            .then((chatroom) => {
+                debug('Adding scum chatroom to game. Chatroom object:');
+                debug(chatroom);
+                internals.game.addChat(chatroom.id);
+            })
             .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'Let the game begin! It is now day. The day will end in ' + internals.config.phases.day))
             .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd))
             .catch((err) => {
