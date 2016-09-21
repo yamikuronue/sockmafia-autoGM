@@ -28,7 +28,8 @@ describe('AutoGM', () => {
 	
 	describe('plugin', () => {
 		const fakeConfig = {
-			category: 12
+			category: 12,
+			minPlayers: 7
 		};
 
 		const fakeForum = {
@@ -67,6 +68,20 @@ describe('AutoGM', () => {
 			};
 			AutoGM.plugin(fakeForum, configWithPhases);
 			AutoGM.internals.config.phases.should.deep.equal(configWithPhases.phases);
+		});
+		
+		it('should capture minimum players', () => {
+			AutoGM.plugin(fakeForum, fakeConfig);
+			AutoGM.internals.config.minPlayers.should.equal(fakeConfig.minPlayers);
+		});
+		
+		it('should enforce a bare minimum of 2 players', () => {
+			const configWithMinimalPlayers = {
+				minPlayers: 0
+			};
+			
+			AutoGM.plugin(fakeForum, configWithMinimalPlayers);
+			AutoGM.internals.config.minPlayers.should.equal(2);
 		});
 	});
 
