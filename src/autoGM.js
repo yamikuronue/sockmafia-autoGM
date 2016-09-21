@@ -160,6 +160,8 @@ exports.sendRolecard = function(index, username) {
             'Your only ability is the daytime vote. Choose wisely!\n' +
             'You win when all Mafia Goons are dead.';
     }
+    
+     message = '\n```\n' + viewHelper.drawBoxAroundText(message) + '```\n';
 
     return new Promise( (resolve) => {
             //Insert a delay to stop them from all firing off at once
