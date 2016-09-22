@@ -217,6 +217,7 @@ exports.postFlip = function postFlip(username, type) {
 exports.startGame = function startGame() {
     debug('Running game start routine');
     const players = internals.game.livePlayers;
+    internals.scum = [];
     
     if (players.length >= internals.config.minPlayers) {
         //Pick scum
@@ -293,8 +294,11 @@ exports.onLynch = function(username) {
         
         if (won) {
             const wintype = won.toLowerCase() + 'Win';
-            return internals.forum.Post.reply(internals.game.topicId, undefined, flavorText[internals.flavor][wintype])
-                .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!'))
+            let winmsg = flavorText[internals.flavor][wintype];
+            winmsg += '\n\n';
+            winmsg += 'The game is over! ' + won + ' won!';
+            
+            return internals.forum.Post.reply(internals.game.topicId, undefined, winmsg)
                 .then(() => endGame())
                 .then(() => exports.deactivate());
         } else {
@@ -320,8 +324,10 @@ exports.onNightEnd = function onNightEnd() {
         const won = exports.checkWin();
         if (won) {
             const wintype = won.toLowerCase() + 'Win';
-            return internals.forum.Post.reply(internals.game.topicId, undefined, flavorText[internals.flavor][wintype])
-                .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!'))
+            let winmsg = flavorText[internals.flavor][wintype];
+            winmsg += '\n\n';
+            winmsg += 'The game is over! ' + won + ' won!';
+            return internals.forum.Post.reply(internals.game.topicId, undefined, winmsg)
                 .then(() => endGame())
                 .then(() => exports.deactivate());
         } else {
