@@ -222,13 +222,16 @@ exports.startGame = function startGame() {
     if (players.length >= internals.config.minPlayers) {
         //Pick scum
         internals.scum.push(players[0].username);
-        internals.scum.push(players[1].username);
         
-        if (players.length > 7) {
+        if (players.length >= 8) {
+            internals.scum.push(players[1].username);
+        }
+        
+        if (players.length >= 12) {
             internals.scum.push(players[2].username);
         }
         
-        if (players.length > 10) {
+        if (players.length >= 16) {
             internals.scum.push(players[3].username);
         }
         
@@ -293,12 +296,7 @@ exports.onLynch = function(username) {
         const won = exports.checkWin();
         
         if (won) {
-            const wintype = won.toLowerCase() + 'Win';
-            let winmsg = flavorText[internals.flavor][wintype];
-            winmsg += '\n\n';
-            winmsg += 'The game is over! ' + won + ' won!';
-            
-            return internals.forum.Post.reply(internals.game.topicId, undefined, winmsg)
+            return internals.forum.Post.reply(internals.game.topicId, undefined, getWinMsg(won))
                 .then(() => endGame())
                 .then(() => exports.deactivate());
         } else {
@@ -307,6 +305,23 @@ exports.onLynch = function(username) {
             
     });
 };
+
+
+function getWinMsg(won) {
+    const wintype = won.toLowerCase() + 'Win';
+    let winmsg = flavorText[internals.flavor][wintype];
+    winmsg += '\n\n';
+    winmsg += 'The game is over! ' + won + ' won! Congratulations to ';
+    
+    if (won.toLowerCase() === 'scum') {
+        winmsg += viewHelper.makeList(internals.scum);
+    } else {
+        const nonScum = internals.game.allPlayers.map((player) => player.username).filter((player) => internals.scum.indexOf(player) === -1);
+        winmsg += viewHelper.makeList(nonScum);
+    }
+    
+    return winmsg;
+}
 
 exports.onNightEnd = function onNightEnd() {
     debug('running Night End routine');
@@ -323,11 +338,7 @@ exports.onNightEnd = function onNightEnd() {
     }).then(() => {
         const won = exports.checkWin();
         if (won) {
-            const wintype = won.toLowerCase() + 'Win';
-            let winmsg = flavorText[internals.flavor][wintype];
-            winmsg += '\n\n';
-            winmsg += 'The game is over! ' + won + ' won!';
-            return internals.forum.Post.reply(internals.game.topicId, undefined, winmsg)
+            return internals.forum.Post.reply(internals.game.topicId, undefined, getWinMsg(won))
                 .then(() => endGame())
                 .then(() => exports.deactivate());
         } else {

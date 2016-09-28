@@ -15,6 +15,13 @@ require('chai-as-promised');
 chai.use(require('sinon-chai'));
 chai.should();
 
+function player(p) {
+	return {
+		username: p,
+		addProperty: sinon.stub().resolves()
+	};
+}
+
 describe('AutoGM', () => {
 	let sandbox;
 	
@@ -342,13 +349,6 @@ describe('AutoGM', () => {
 			sandbox.stub(AutoGM, 'sendRolecard', (index, user) => Promise.resolve(fakeForum.User.getByName(user)));
 		});
 		
-		function player(p) {
-			return {
-				username: p,
-				addProperty: sandbox.stub().resolves()
-			};
-		}
-		
 		it('Should deactivate with 0 players', () => {
 			sandbox.stub(AutoGM, 'deactivate').resolves();
 			sandbox.spy(fakeForum.Post, 'reply');
@@ -395,19 +395,38 @@ describe('AutoGM', () => {
 			});
 		});
 		
-		it('Should assign 2 scum with 6 players', () => {
+		it('Should assign 1 scum with 6 players', () => {
 			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
+			sandbox.stub(AutoGM, 'setTimer').resolves();
+			
+			return AutoGM.startGame().then(() => {
+				AutoGM.internals.scum.should.include('one');
+				AutoGM.internals.scum.should.not.include('two');
+				AutoGM.internals.scum.should.not.include('three');
+			});
+		});
+		
+		it('Should assign 2 scum with 8 players', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight')];
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			
 			return AutoGM.startGame().then(() => {
 				AutoGM.internals.scum.should.include('one');
 				AutoGM.internals.scum.should.include('two');
 				AutoGM.internals.scum.should.not.include('three');
+				AutoGM.internals.scum.should.not.include('four');
+				
+				AutoGM.internals.game.livePlayers[0].addProperty.should.have.been.calledWith('scum');
+				AutoGM.internals.game.livePlayers[1].addProperty.should.have.been.calledWith('scum');
+				AutoGM.internals.game.livePlayers[2].addProperty.should.not.have.been.calledWith('scum');
+				AutoGM.internals.game.livePlayers[3].addProperty.should.not.have.been.calledWith('scum');
 			});
 		});
 		
-		it('Should assign 3 scum with 8 players', () => {
-			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight')];
+		it('Should assign 3 scum with 12 players', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'),
+													player('six'), player('seven'), player('eight'), player('nine'), player('ten'),
+													player('eleven'), player('twelve')];
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			
 			return AutoGM.startGame().then(() => {
@@ -415,16 +434,15 @@ describe('AutoGM', () => {
 				AutoGM.internals.scum.should.include('two');
 				AutoGM.internals.scum.should.include('three');
 				AutoGM.internals.scum.should.not.include('four');
-				
-				AutoGM.internals.game.livePlayers[0].addProperty.should.have.been.calledWith('scum');
-				AutoGM.internals.game.livePlayers[1].addProperty.should.have.been.calledWith('scum');
-				AutoGM.internals.game.livePlayers[2].addProperty.should.have.been.calledWith('scum');
-				AutoGM.internals.game.livePlayers[3].addProperty.should.not.have.been.calledWith('scum');
+				AutoGM.internals.scum.should.not.include('five');
 			});
 		});
 		
-		it('Should assign 4 scum with 11 players', () => {
-			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight'), player('nine'), player('ten'), player('eleven')];
+		it('Should assign 4 scum with 16 players', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'),
+													player('six'), player('seven'), player('eight'), player('nine'), player('ten'),
+													player('eleven'), player('twelve'), player('thirteen'), player('fourteen'), player('fifteen'), player('sixteen')];
+													
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			
 			return AutoGM.startGame().then(() => {
@@ -445,7 +463,7 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should create a scum chat', () => {
-			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight')];
 			sandbox.spy(fakeForum.Chat, 'create');
 			AutoGM.internals.scum = [];
 			
@@ -598,9 +616,11 @@ describe('AutoGM', () => {
 			};
 			
 			AutoGM.internals.forum = fakeForum;
+			AutoGM.internals.scum = ['one'];
 			
 			AutoGM.internals.game = {
 				livePlayers: [],
+				allPlayers: [player('one'), player('two'), player('three'), player('four')],
 				getActionOfType: () => null,
 				killPlayer: () => Promise.resolve(),
 				newDay: () => Promise.resolve(),
@@ -679,6 +699,7 @@ describe('AutoGM', () => {
 			return AutoGM.onNightEnd().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
 				fakeForum.Post.reply.secondCall.args[2].should.include('Town won');
+				fakeForum.Post.reply.secondCall.args[2].should.include('Congratulations to @two, @three, and @four');
 			});
 		});
 		
@@ -688,6 +709,7 @@ describe('AutoGM', () => {
 			return AutoGM.onNightEnd().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
 				fakeForum.Post.reply.secondCall.args[2].should.include('Scum won');
+				fakeForum.Post.reply.secondCall.args[2].should.include('Congratulations to @one');
 			});
 		});
 		
@@ -716,10 +738,13 @@ describe('AutoGM', () => {
 			
 			AutoGM.internals.game = {
 				livePlayers: [],
+				allPlayers: [player('one'), player('two'), player('three'), player('four')],
 				newDay: () => Promise.resolve(),
 				nextPhase: () => Promise.resolve(),
 				topicID: 123
 			};
+			
+			AutoGM.internals.scum = ['one'];
 			
 			sandbox.stub(AutoGM, 'postFlip').resolves();
 		});
@@ -1157,5 +1182,14 @@ describe('viewHelper', () => {
 			outlines[4].should.equal('╚══════════════════════════╝');
 
 		});
+	});
+	
+	describe('makeList', () => {
+		it('should handle 0 names', () => viewHelper.makeList([]).should.equal('nobody'));
+		it('should handle one name', () => viewHelper.makeList(['one']).should.equal('@one'));
+		it('should handle two names', () => viewHelper.makeList(['one', 'two']).should.equal('@one and @two'));
+		it('should handle three names', () => viewHelper.makeList(['one', 'two', 'three']).should.equal('@one, @two, and @three'));
+		it('should handle invalid input', () => viewHelper.makeList(false).should.equal('nobody'));
+		it('should handle invalid input', () => viewHelper.makeList('banana').should.equal('nobody'));
 	});
 });

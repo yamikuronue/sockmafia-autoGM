@@ -31,5 +31,34 @@ module.exports = {
         }
         output += `╔${longEdge}╗\n${lines.join('\n')}\n╚${longEdge}╝\n`;
         return output;
+    },
+    
+    makeList: function(players) {
+        if (!players || !Array.isArray(players)) {
+            return 'nobody';
+        }
+        
+        const length = players.length;
+        const lastIndex = length - 1;
+        
+        if (length === 0) {
+            return 'nobody';
+        }
+        
+        if (length === 1) {
+            return '@' + players[0];
+        }
+        
+        if (length === 2) {
+            return `@${players[0]} and @${players[1]}`;
+        }
+        
+        let list = '';
+        for (let i = 0; i < lastIndex; i++) {
+            list += '@' + players[i] + ', ';
+        }
+        list += 'and @' + players[lastIndex];
+        
+        return list;
     }
 };
