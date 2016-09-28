@@ -32,7 +32,8 @@ exports.defaultConfig = {
         init: '48 hours',
         day: '72 hours',
         night: '24 hours'
-    }
+    },
+    loop: false
 };
 
 /**
@@ -53,10 +54,16 @@ exports.deactivate = function deactivate() {
     return Promise.resolve();
 };
 
-function endGame() {
+exports.endGame = function endGame() {
     internals.game = undefined;
-    return rimrafPromise('autoGMdata');
-}
+    return rimrafPromise('autoGMdata').then(() => {
+        if (internals.config.loop) {
+            return exports.createGame();
+        } else {
+            return exports.deactivate();
+        }
+    });
+};
 
 
 /**
@@ -297,8 +304,7 @@ exports.onLynch = function(username) {
         
         if (won) {
             return internals.forum.Post.reply(internals.game.topicId, undefined, getWinMsg(won))
-                .then(() => endGame())
-                .then(() => exports.deactivate());
+                .then(() => exports.endGame());
         } else {
             return exports.onDayEnd();
         }
@@ -339,8 +345,7 @@ exports.onNightEnd = function onNightEnd() {
         const won = exports.checkWin();
         if (won) {
             return internals.forum.Post.reply(internals.game.topicId, undefined, getWinMsg(won))
-                .then(() => endGame())
-                .then(() => exports.deactivate());
+                .then(() => exports.endGame());
         } else {
             return internals.game.newDay()
             .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'It is now day. Day will end in ' + internals.config.phases.day))

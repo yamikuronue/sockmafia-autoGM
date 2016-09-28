@@ -1,5 +1,5 @@
 'use strict';
-/*globals describe, it, beforeEach, afterEach*/
+/*globals describe, it, beforeEach, afterEach, should*/
 
 const chai = require('chai'),
 	sinon = require('sinon');
@@ -500,6 +500,29 @@ describe('AutoGM', () => {
 		});
 	});
 	
+	describe('endGame', () => {
+		beforeEach(() => {
+			AutoGM.internals.config = AutoGM.defaultConfig;
+			sandbox.stub(AutoGM, 'deactivate').resolves();
+			sandbox.stub(AutoGM, 'createGame').resolves();
+		});
+		
+		it('should trash the game', () => {
+			AutoGM.internals.game = 'game object goes here';
+			AutoGM.endGame().then(() => should.not.exist(AutoGM.internals.game));
+		});
+		
+		it('should deactivate if not in loop mode', () => {
+			AutoGM.internals.config.loop = false;
+			AutoGM.endGame().then(() => AutoGM.deactivate().should.have.been.called);
+		});
+		
+		it('should start a new game if in loop mode', () => {
+			AutoGM.internals.config.loop = true;
+			AutoGM.endGame().then(() => AutoGM.createGame().should.have.been.called);
+		});
+	});
+	
 	describe('sendRoleCard', () => {
 			let fakeForum;
 		
@@ -627,6 +650,9 @@ describe('AutoGM', () => {
 				nextPhase: () => Promise.resolve(),
 				topicID: 123
 			};
+			
+			sandbox.stub(AutoGM, 'endGame').resolves();
+
 		});
 		
 		it('Should kill scum\'s pick', () => {
@@ -713,11 +739,10 @@ describe('AutoGM', () => {
 			});
 		});
 		
-		it('Should deactivate if the game is over', () => {
+		it('Should end if the game is over', () => {
 			sandbox.stub(AutoGM, 'checkWin').returns('Cuckoo');
-			sandbox.spy(AutoGM, 'deactivate');
 			return AutoGM.onNightEnd().then(() => {
-				AutoGM.deactivate.should.have.been.called;
+				AutoGM.endGame.should.have.been.called;
 			});
 		});
 		
@@ -747,6 +772,7 @@ describe('AutoGM', () => {
 			AutoGM.internals.scum = ['one'];
 			
 			sandbox.stub(AutoGM, 'postFlip').resolves();
+			sandbox.stub(AutoGM, 'endGame').resolves();
 		});
 		
 		it('Should post the flip', () => {
@@ -775,11 +801,10 @@ describe('AutoGM', () => {
 			});
 		});
 		
-		it('Should deactivate if the game is over', () => {
+		it('Should end if the game is over', () => {
 			sandbox.stub(AutoGM, 'checkWin').returns('Cuckoo');
-			sandbox.spy(AutoGM, 'deactivate');
 			return AutoGM.onLynch().then(() => {
-				AutoGM.deactivate.should.have.been.called;
+				AutoGM.endGame.should.have.been.called;
 			});
 		});
 		
