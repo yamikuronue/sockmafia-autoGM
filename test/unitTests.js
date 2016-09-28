@@ -15,6 +15,13 @@ require('chai-as-promised');
 chai.use(require('sinon-chai'));
 chai.should();
 
+function player(p) {
+	return {
+		username: p,
+		addProperty: sinon.stub().resolves()
+	};
+}
+
 describe('AutoGM', () => {
 	let sandbox;
 	
@@ -342,13 +349,6 @@ describe('AutoGM', () => {
 			sandbox.stub(AutoGM, 'sendRolecard', (index, user) => Promise.resolve(fakeForum.User.getByName(user)));
 		});
 		
-		function player(p) {
-			return {
-				username: p,
-				addProperty: sandbox.stub().resolves()
-			};
-		}
-		
 		it('Should deactivate with 0 players', () => {
 			sandbox.stub(AutoGM, 'deactivate').resolves();
 			sandbox.spy(fakeForum.Post, 'reply');
@@ -616,9 +616,11 @@ describe('AutoGM', () => {
 			};
 			
 			AutoGM.internals.forum = fakeForum;
+			AutoGM.internals.scum = ['one'];
 			
 			AutoGM.internals.game = {
 				livePlayers: [],
+				allPlayers: [player('one'), player('two'), player('three'), player('four')],
 				getActionOfType: () => null,
 				killPlayer: () => Promise.resolve(),
 				newDay: () => Promise.resolve(),
@@ -697,6 +699,7 @@ describe('AutoGM', () => {
 			return AutoGM.onNightEnd().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
 				fakeForum.Post.reply.secondCall.args[2].should.include('Town won');
+				fakeForum.Post.reply.secondCall.args[2].should.include('Congratulations to @two, @three, and @four');
 			});
 		});
 		
@@ -706,6 +709,7 @@ describe('AutoGM', () => {
 			return AutoGM.onNightEnd().then(() => {
 				fakeForum.Post.reply.should.have.been.called;
 				fakeForum.Post.reply.secondCall.args[2].should.include('Scum won');
+				fakeForum.Post.reply.secondCall.args[2].should.include('Congratulations to @one');
 			});
 		});
 		
@@ -734,10 +738,13 @@ describe('AutoGM', () => {
 			
 			AutoGM.internals.game = {
 				livePlayers: [],
+				allPlayers: [player('one'), player('two'), player('three'), player('four')],
 				newDay: () => Promise.resolve(),
 				nextPhase: () => Promise.resolve(),
 				topicID: 123
 			};
+			
+			AutoGM.internals.scum = ['one'];
 			
 			sandbox.stub(AutoGM, 'postFlip').resolves();
 		});
@@ -1175,5 +1182,14 @@ describe('viewHelper', () => {
 			outlines[4].should.equal('╚══════════════════════════╝');
 
 		});
+	});
+	
+	describe('makeList', () => {
+		it('should handle 0 names', () => viewHelper.makeList([]).should.equal('nobody'));
+		it('should handle one name', () => viewHelper.makeList(['one']).should.equal('@one'));
+		it('should handle two names', () => viewHelper.makeList(['one', 'two']).should.equal('@one and @two'));
+		it('should handle three names', () => viewHelper.makeList(['one', 'two', 'three']).should.equal('@one, @two, and @three'));
+		it('should handle invalid input', () => viewHelper.makeList(false).should.equal('nobody'));
+		it('should handle invalid input', () => viewHelper.makeList('banana').should.equal('nobody'));
 	});
 });
