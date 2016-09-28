@@ -1,0 +1,20 @@
+{
+    "normal": {
+        "scum": "Mafia Goon",
+        "town": "Vanilla Townie",
+        "openingScene": "Your little town has been under seige by the villanous forces of the Mafia since time immemorial. Now, at last, you are taking a stand. The citizens of the town have banded together to form a tribunal: they will execute people one by one until the dastardly killings stop. Can you save your town before the mafia take over completely?",
+        "lynch": "As {{victim}} is marched up the stand, they face the crowd. A serene sort of acceptance washes over their face; whatever their deeds, it's all over now. And ten minutes later, only a corpse remains, dangling from the lynching rope in full view of the public.",
+        "kill": "As you gather in the square for today's tribunal, you notice that {{victim}} is missing. A quick search reveals the truth: {{victim}} has been slain in their bed overnight, a bullet left right between the eyes. The gory scene can only mean one thing: the mob has killed again.",
+        "scumWin": "The remaining mafia members reveal themselves, openly taking over the town. It becomes a place of lawlessness, run by the big don, where normal people fail to tread.",
+        "townWin": "As the last Mafia member dangles from the rope, a sense of profound relief washes over the remaining townsfolk. It will be alright now. Everything is fine once again. All you have to do is wash the last of the blood off your hands..."
+    },
+    "pirate": {
+        "scum": "Mutineer",
+        "town": "Loyal Seaman",
+        "openingScene": "The waves aren't the only thing rocking this pirate ship; the winds speak of mutiny on the high seas. The captain has already been keelhauled; it's up to his remaining crew to ferret out the scurvy knaves who hope to take over this ship and the hold full of booty. Can you wrest control and restore the pirate code?",
+        "lynch": "{{victim}} is frog-marched to the rear of the deck, and with a little prodding, takes their place atop the plank. The crew is like a mob, jeering and throwing things. Someone prods them, and with a final round of curses, they walk off the end of the plank, vanishing beneath the waves. All retreat to their bunks, their grim work done.",
+        "kill": "All hands are on deck but one -- {{victim}} must have over indulged in grog, the scurvy seadog. Someone goes to wake him, but he's not in his bunk either. His body, in fact, is dangling above the poop deck, having been hoisted in a makeshift noose off the mainsail. The mutineers have struck again!",
+        "scumWin": "On a signal, the mutineers rush for the wheel, taking control of the ship both literally and figuratively. 'Argh! Ye all be answerin to a new captain now!', they shout.",
+        "townWin": "Slowly, order is restored once more. A captain is elected, and the crew get back to their work. Once the ship reaches Antigua, the booty is sold, and the profits split. The ship's crew dissolves, each with their pockets full of gold -- the happiest ending a pirate can hope for."
+    }
+}

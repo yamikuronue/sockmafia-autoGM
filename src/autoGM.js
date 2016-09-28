@@ -4,6 +4,8 @@ const SockMafia = require('sockmafia');
 const Moment = require('moment');
 const fs = require('fs');
 const rimrafPromise = require('rimraf-promise');
+const flavorText = require('./flavor.json');
+const Handlebars = require('handlebars');
 
 const viewHelper = require('./viewHelper');
 
@@ -14,6 +16,7 @@ const internals = {
     game: game,
     scum: [],
     myName: '',
+    flavor: 'normal',
     timer: {
         nextAlert: undefined,
         callback: undefined,
@@ -128,12 +131,21 @@ exports.init = function() {
     
 };
 
+function pickFlavor() {
+    const flavors = Object.keys(flavorText);
+    const numFlavors = flavors.length;
+    internals.flavor = flavors[Math.floor(Math.random() * numFlavors)];
+}
+
 exports.createGame = function() {
     let threadID;
     const threadTitle = 'Auto-generated Mafia Game Thread';
     const threadOP = 'This is an automatic mafia thread. This will be the main game thread for the game';
-    
+
     debug('Creating game');
+        
+    pickFlavor();
+    debug('Flavor is: ' + internals.flavor);
     
     return internals.forum.Category.get(internals.config.category).then((category) => category.addTopic(threadTitle, threadOP))
         .then((thread) => {
@@ -149,19 +161,24 @@ exports.createGame = function() {
         .then(() => exports.setTimer(internals.config.phases.init, exports.startGame));
 };
 
-exports.sendRolecard = function(index, username) {
-    let message, target;
+function getRoleCard(username) {
+    let message;
     if (internals.scum.indexOf(username) > -1) {
-        message = 'You are a Mafia Goon!\n' +
+        message = `You are a ${flavorText[internals.flavor].scum}!\n` +
             'Every night, you and your companions \nmay choose to kill one person.\n' +
-            'You win when the number of Mafia Goons \nis equal to or greater than the number of Town players';
+            `You win when the number of scum players \nis equal to or greater than the number of town players`;
     } else {
-        message = 'You are a Vanilla Town!\n' +
+        message = `You are a ${flavorText[internals.flavor].town}!\n` +
             'Your only ability is the daytime vote. \nChoose wisely!\n' +
-            'You win when all Mafia Goons are dead.';
+            `You win when all ${flavorText[internals.flavor].scum} are dead.`;
     }
     
-     message = '\n```\n' + viewHelper.drawBoxAroundText(message) + '```\n';
+    return message;
+}
+
+exports.sendRolecard = function(index, username) {
+    let target;
+    const message = '\n```\n' + viewHelper.drawBoxAroundText(getRoleCard(username)) + '```\n';
 
     return new Promise( (resolve) => {
             //Insert a delay to stop them from all firing off at once
@@ -178,23 +195,21 @@ exports.sendRolecard = function(index, username) {
         });
 };
 
-
-exports.postFlip = function postFlip(username) {
+/**
+ * Post the flavor and role card for a death
+ * @param {String} username The person who died. This will be passed to a template as "victim"
+ * @param {String} type The type of template to use for the death. Should be one of "lynch" or "kill"
+ * @returns {Promise} A promise that will resolve after the flip is posted
+ */
+exports.postFlip = function postFlip(username, type) {
+    const deathTemplate = Handlebars.compile(flavorText[internals.flavor][type]);
+    let message = deathTemplate({
+        victim: username
+    });
     
-    let message = `**${username}** has died!`;
+    message += `\n\n**${username}** has died! Role card: \n`;
     
-    message += 'Role card: \n';
-    if (internals.scum.indexOf(username) > -1) {
-        message += 'You are a Mafia Goon!\n' +
-            'Every night, you and your companions may choose to kill one person.\n' +
-            'You win when the number of Mafia Goons is equal to or greater than the number of Town players';
-    } else {
-        message += 'You are a Vanilla Town!\n' +
-            'Your only ability is the daytime vote. Choose wisely!\n' +
-            'You win when all Mafia Goons are dead.';
-    }
-    
-    message = '\n```\n' + viewHelper.drawBoxAroundText(message) + '```\n';
+    message += '\n```\n' + viewHelper.drawBoxAroundText(getRoleCard(username)) + '```\n';
 
     return internals.forum.Post.reply(internals.game.topicId, undefined, message);
 };
@@ -202,6 +217,7 @@ exports.postFlip = function postFlip(username) {
 exports.startGame = function startGame() {
     debug('Running game start routine');
     const players = internals.game.livePlayers;
+    internals.scum = [];
     
     if (players.length >= internals.config.minPlayers) {
         //Pick scum
@@ -246,6 +262,7 @@ exports.startGame = function startGame() {
                 debug(chatroom);
                 internals.game.addChat(chatroom.id);
             })
+            .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, flavorText[internals.flavor].openingScene))
             .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'Let the game begin! It is now day. The day will end in ' + internals.config.phases.day))
             .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd))
             .catch((err) => {
@@ -275,11 +292,16 @@ exports.onLynch = function(username) {
     debug('running Lynch routine');
     exports.cancelTimer();
     
-    return exports.postFlip(username).then(() => {
+    return exports.postFlip(username, 'lynch').then(() => {
         const won = exports.checkWin();
         
         if (won) {
-            return internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!')
+            const wintype = won.toLowerCase() + 'Win';
+            let winmsg = flavorText[internals.flavor][wintype];
+            winmsg += '\n\n';
+            winmsg += 'The game is over! ' + won + ' won!';
+            
+            return internals.forum.Post.reply(internals.game.topicId, undefined, winmsg)
                 .then(() => endGame())
                 .then(() => exports.deactivate());
         } else {
@@ -297,14 +319,18 @@ exports.onNightEnd = function onNightEnd() {
         if (action) {
             //Kill the scum's pick
             internals.game.killPlayer(action.target);
-            return exports.postFlip(action.target.username);
+            return exports.postFlip(action.target.username, 'kill');
         } else {
             return internals.forum.Post.reply(internals.game.topicId, undefined, 'The night was quiet.');
         }
     }).then(() => {
         const won = exports.checkWin();
         if (won) {
-            return internals.forum.Post.reply(internals.game.topicId, undefined, 'The game is over! ' + won + ' won!')
+            const wintype = won.toLowerCase() + 'Win';
+            let winmsg = flavorText[internals.flavor][wintype];
+            winmsg += '\n\n';
+            winmsg += 'The game is over! ' + won + ' won!';
+            return internals.forum.Post.reply(internals.game.topicId, undefined, winmsg)
                 .then(() => endGame())
                 .then(() => exports.deactivate());
         } else {
@@ -344,6 +370,7 @@ exports.save = function() {
     const persistData = {
         scum: internals.scum,
         thread: internals.game.topicId,
+        flavor: internals.flavor,
         timer: { }
     };
     
@@ -379,6 +406,7 @@ exports.load = function() {
           
           if (data.scum) {
               internals.scum = data.scum;
+              internals.flavor = data.flavor;
               
               if (data.timer) {
                   internals.timer.nextAlert = Moment(data.timer.nextAlert, Moment.ISO_8601);

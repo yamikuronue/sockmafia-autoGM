@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "eslint . && istanbul cover node_modules/mocha/bin/_mocha -- --recursive -R dot ./test/unitTests.js"
+    "test": "eslint . && istanbul cover node_modules/mocha/bin/_mocha -- --recursive -R dot ./test/unitTests.js && mocha -R dot ./test/unitTests.js"
   },
   "repository": {
     "type": "git",
@@ -21,6 +21,7 @@
   "homepage": "https://github.com/yamikuronue/sockmafia-autoGM#readme",
   "dependencies": {
     "debug": "^2.2.0",
+    "handlebars": "^4.0.5",
     "moment": "^2.14.1",
     "rimraf-promise": "^2.0.0",
     "sockmafia": "sockdrawer/SockMafia"
