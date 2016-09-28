@@ -276,14 +276,12 @@ exports.startGame = function startGame() {
                 debug(err);
                 return internals.forum.Post.reply(internals.game.topicId, undefined, ':wtf: Sorry folks, I need to cancel this one; I\'ve hit an error. \n Error was: ' + err)
                     .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, err.stack))
-                    .then(() => internals.game.setInactive())
-                    .then(() => exports.deactivate());
+                    .then(() => exports.endGame());
             });
     } else {
         debug('Cancelling game in ' + internals.game.topicId);
         return internals.forum.Post.reply(internals.game.topicId, undefined, 'I\'m sorry, there were not enough players. Better luck next time!')
-        .then(() => internals.game.setInactive())
-        .then(()=> exports.deactivate());
+        .then(()=> exports.endGame());
     }
 };
 
