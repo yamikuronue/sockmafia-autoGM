@@ -206,13 +206,16 @@ exports.startGame = function startGame() {
     if (players.length >= internals.config.minPlayers) {
         //Pick scum
         internals.scum.push(players[0].username);
-        internals.scum.push(players[1].username);
         
-        if (players.length > 7) {
+        if (players.length >= 8) {
+            internals.scum.push(players[1].username);
+        }
+        
+        if (players.length >= 12) {
             internals.scum.push(players[2].username);
         }
         
-        if (players.length > 10) {
+        if (players.length >= 16) {
             internals.scum.push(players[3].username);
         }
         

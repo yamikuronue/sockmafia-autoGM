@@ -382,19 +382,38 @@ describe('AutoGM', () => {
 			});
 		});
 		
-		it('Should assign 2 scum with 6 players', () => {
+		it('Should assign 1 scum with 6 players', () => {
 			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
+			sandbox.stub(AutoGM, 'setTimer').resolves();
+			
+			return AutoGM.startGame().then(() => {
+				AutoGM.internals.scum.should.include('one');
+				AutoGM.internals.scum.should.not.include('two');
+				AutoGM.internals.scum.should.not.include('three');
+			});
+		});
+		
+		it('Should assign 2 scum with 8 players', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight')];
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			
 			return AutoGM.startGame().then(() => {
 				AutoGM.internals.scum.should.include('one');
 				AutoGM.internals.scum.should.include('two');
 				AutoGM.internals.scum.should.not.include('three');
+				AutoGM.internals.scum.should.not.include('four');
+				
+				AutoGM.internals.game.livePlayers[0].addProperty.should.have.been.calledWith('scum');
+				AutoGM.internals.game.livePlayers[1].addProperty.should.have.been.calledWith('scum');
+				AutoGM.internals.game.livePlayers[2].addProperty.should.not.have.been.calledWith('scum');
+				AutoGM.internals.game.livePlayers[3].addProperty.should.not.have.been.calledWith('scum');
 			});
 		});
 		
-		it('Should assign 3 scum with 8 players', () => {
-			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight')];
+		it('Should assign 3 scum with 12 players', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'),
+													player('six'), player('seven'), player('eight'), player('nine'), player('ten'),
+													player('eleven'), player('twelve')];
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			
 			return AutoGM.startGame().then(() => {
@@ -402,16 +421,15 @@ describe('AutoGM', () => {
 				AutoGM.internals.scum.should.include('two');
 				AutoGM.internals.scum.should.include('three');
 				AutoGM.internals.scum.should.not.include('four');
-				
-				AutoGM.internals.game.livePlayers[0].addProperty.should.have.been.calledWith('scum');
-				AutoGM.internals.game.livePlayers[1].addProperty.should.have.been.calledWith('scum');
-				AutoGM.internals.game.livePlayers[2].addProperty.should.have.been.calledWith('scum');
-				AutoGM.internals.game.livePlayers[3].addProperty.should.not.have.been.calledWith('scum');
+				AutoGM.internals.scum.should.not.include('five');
 			});
 		});
 		
-		it('Should assign 4 scum with 11 players', () => {
-			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight'), player('nine'), player('ten'), player('eleven')];
+		it('Should assign 4 scum with 16 players', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'),
+													player('six'), player('seven'), player('eight'), player('nine'), player('ten'),
+													player('eleven'), player('twelve'), player('thirteen'), player('fourteen'), player('fifteen'), player('sixteen')];
+													
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			
 			return AutoGM.startGame().then(() => {
@@ -432,7 +450,7 @@ describe('AutoGM', () => {
 		});
 		
 		it('Should create a scum chat', () => {
-			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six'), player('seven'), player('eight')];
 			sandbox.spy(fakeForum.Chat, 'create');
 			AutoGM.internals.scum = [];
 			
