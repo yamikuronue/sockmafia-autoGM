@@ -27,7 +27,7 @@
     "sockmafia": "sockdrawer/SockMafia"
   },
   "peerDependencies": {
-    "sockbot": "^4.3.0"
+    "sockbot": "^4.11.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
