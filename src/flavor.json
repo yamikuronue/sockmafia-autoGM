@@ -34,5 +34,14 @@
         "kill": "A scream shatters the dawn; a servant has discovered {{victim}}, hacked to pieces and left for dead in his room overnight.",
         "scumWin": "The bloody work is done. The daimyo and his loyal subjects lie dead and/or cowed into submission. Now is the hour of the anarchist; now is the destruction of your society. At last, at last!",
         "townWin": "The bloody work is done. The daimyo's son arrives to take his place; slowly but surely, order is restored. Slowly, the survivors begin to forget the tragedy they have been through. Slowly, life returns to normal."
+    },
+    "Reverse": {
+        "scum": "Undercover Agent",
+        "town": "Mafia Goon",
+        "openingScene": "Your unstoppable mafia has been infiltrated by a damned government task force. Those bastards think they can take your empire down. It's time to show them that they picked the wrong family to mess with. Unfortunately, you know what they say: There's no honor among thieves. So, not knowing who to trust, and with the boss in hiding, you decide to meet in the boss's mansion and put it to a vote. Each day, someone's going to face the justice of the family. Can you take out all the feds before they take the family down?",
+        "lynch": "{{victim}} is shoved up against the wall. They turn to face the family, a sneer on their face. Their mouth opens, apparently ready to deliver one last speech of defiance, but they are interrupted as the rest of the family unloads into their body, leaving nothing but a bloody, ruined mess.",
+        "kill": "As you gather in the main room for today's discussions, you notice that {{victim}} is missing. A quick search reveals {{victim}}'s room has been tossed, but no sign of them. The Feds must have snuck them out in the night.",
+        "scumWin": "The remaining Feds reveal themselves, and a S.W.A.T. team storms in, quickly subduing the last of the family members. The greatest crime family in years has been destroyed. Now, to go home and get some much needed rest, after raising a glass to your fallen comrades, of course.",
+        "townWin": "As the last Fed lies bleeding at the base of the wall, a sense of satisfaction washes over the room. No one will bother the family for a long time after this. The only question now is what to do with all these bodies? Maybe a new guest house in the backyard?"
     }
 }
