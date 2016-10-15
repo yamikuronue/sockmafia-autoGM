@@ -43,5 +43,14 @@
         "kill": "As you gather in the main room for today's discussions, you notice that {{victim}} is missing. A quick search reveals {{victim}}'s room has been tossed, but no sign of them. The Feds must have snuck them out in the night.",
         "scumWin": "The remaining Feds reveal themselves, and a S.W.A.T. team storms in, quickly subduing the last of the family members. The greatest crime family in years has been destroyed. Now, to go home and get some much needed rest, after raising a glass to your fallen comrades, of course.",
         "townWin": "As the last Fed lies bleeding at the base of the wall, a sense of satisfaction washes over the room. No one will bother the family for a long time after this. The only question now is what to do with all these bodies? Maybe a new guest house in the backyard?"
+    },
+    "tron": {
+        "scum": "Malicious program",
+        "town": "Anti virus",
+        "openingScene": "Your computer was once a safe place. Owned by a paranoid programmer, with adblock, noscript and very conservative browsing habits, your job protecting the computer was an easy one of scanning the occasional download Now, though, your haven has been handed down to his teenage son after an upgrade You have been subjected to porn sites, warez, torrents and phishing sites It's time to begin the fight back and eliminate the male are that has infiltrated your ranks",
+        "lynch": "The quarantine procedure begins {{victim}} is moved byte by byte into the bit bucket never to be seen again Every file association, registry entry and shortcut is soon obliterated and {{victim}} is no more.",
+        "kill": "As you wake from sleep you notice a missing entry on the start menu After checking add/remove programs you discover that {{victim}} has been purged from the file sustem.",
+        "scumWin": "Your defense was valiant but ultimately in vain. The malware has taken over your environment, and the remaining clean programs feel their private data being sent to any Russian hacker and Nigerian prince that wants them. The victory for the malware is short lived, however, as the next day the increase in bandwidth is noticed and you are all formatted to be replaced with a locked down Linux distribution.",
+        "townWin": "The latest full scan comes back clean No rootkits, viruses, Trojans or spyware You have succeeded in clearing the computer of all known threats. Congratulations!"
     }
 }
