@@ -16,5 +16,41 @@
         "kill": "All hands are on deck but one -- {{victim}} must have over indulged in grog, the scurvy seadog. Someone goes to wake him, but he's not in his bunk either. His body, in fact, is dangling above the poop deck, having been hoisted in a makeshift noose off the mainsail. The mutineers have struck again!",
         "scumWin": "On a signal, the mutineers rush for the wheel, taking control of the ship both literally and figuratively. 'Argh! Ye all be answerin to a new captain now!', they shout.",
         "townWin": "Slowly, order is restored once more. A captain is elected, and the crew get back to their work. Once the ship reaches Antigua, the booty is sold, and the profits split. The ship's crew dissolves, each with their pockets full of gold -- the happiest ending a pirate can hope for."
+    },
+    "wildWest": {
+        "scum": "Outlaws",
+        "town": "Cowfolk",
+        "openingScene": "A tumbleweed blows through the center of town, past the corpses littering the street. The fight had been bloody but short. Nobody saw just who started it; someone with an eye to killing and a good sense of the victim's psychology. Now the sheriff and the deputy both lie dead, and it's up to you to figure out who is trying to destroy this little mining town.",
+        "lynch": "{{victim}} kneels, cursing and spitting; a bullet between the eyes shuts him up.",
+        "kill": "Dawn breaks, and the town reconvenes: all but {{victim}}, whose body has been displayed in front of the saloon as though it were a trophy -- or a warning.",
+        "scumWin": "One by one, a number of townsfolk change their usual hats for jet black ones, revealing themselves: the Black Hat society has claimed this town, as it has so many others. Hopefully one day a town will have enough security to stop their reign of terror...",
+        "townWin": "Dawn breaks, and sunset, and dawn again. There are no more murders. There is only peace and quiet. The town is safe... for now."
+    },
+    "Japanese": {
+        "scum": "Ronin",
+        "town": "Samurai",
+        "openingScene": "The daimyo lies dead, in his own home. Someone has done this dastardly deed -- some Ronin, probably, a Samurai gone rogue, thirsty for blood. Who among you could have been so cruel and heartless as to murder their own lord?",
+        "lynch": "{{victim}} is led to the back garden, forced to kneel upon the stones. They are given a small knife with which to restore their honor, and someone stands ready to claim the head when all is said and done. Hopefully the murders will stop here.",
+        "kill": "A scream shatters the dawn; a servant has discovered {{victim}}, hacked to pieces and left for dead in his room overnight.",
+        "scumWin": "The bloody work is done. The daimyo and his loyal subjects lie dead and/or cowed into submission. Now is the hour of the anarchist; now is the destruction of your society. At last, at last!",
+        "townWin": "The bloody work is done. The daimyo's son arrives to take his place; slowly but surely, order is restored. Slowly, the survivors begin to forget the tragedy they have been through. Slowly, life returns to normal."
+    },
+    "Reverse": {
+        "scum": "Undercover Agent",
+        "town": "Mafia Goon",
+        "openingScene": "Your unstoppable mafia has been infiltrated by a damned government task force. Those bastards think they can take your empire down. It's time to show them that they picked the wrong family to mess with. Unfortunately, you know what they say: There's no honor among thieves. So, not knowing who to trust, and with the boss in hiding, you decide to meet in the boss's mansion and put it to a vote. Each day, someone's going to face the justice of the family. Can you take out all the feds before they take the family down?",
+        "lynch": "{{victim}} is shoved up against the wall. They turn to face the family, a sneer on their face. Their mouth opens, apparently ready to deliver one last speech of defiance, but they are interrupted as the rest of the family unloads into their body, leaving nothing but a bloody, ruined mess.",
+        "kill": "As you gather in the main room for today's discussions, you notice that {{victim}} is missing. A quick search reveals {{victim}}'s room has been tossed, but no sign of them. The Feds must have snuck them out in the night.",
+        "scumWin": "The remaining Feds reveal themselves, and a S.W.A.T. team storms in, quickly subduing the last of the family members. The greatest crime family in years has been destroyed. Now, to go home and get some much needed rest, after raising a glass to your fallen comrades, of course.",
+        "townWin": "As the last Fed lies bleeding at the base of the wall, a sense of satisfaction washes over the room. No one will bother the family for a long time after this. The only question now is what to do with all these bodies? Maybe a new guest house in the backyard?"
+    },
+    "tron": {
+        "scum": "Malicious program",
+        "town": "Anti virus",
+        "openingScene": "Your computer was once a safe place. Owned by a paranoid programmer, with adblock, noscript and very conservative browsing habits, your job protecting the computer was an easy one of scanning the occasional download Now, though, your haven has been handed down to his teenage son after an upgrade You have been subjected to porn sites, warez, torrents and phishing sites It's time to begin the fight back and eliminate the male are that has infiltrated your ranks",
+        "lynch": "The quarantine procedure begins {{victim}} is moved byte by byte into the bit bucket never to be seen again Every file association, registry entry and shortcut is soon obliterated and {{victim}} is no more.",
+        "kill": "As you wake from sleep you notice a missing entry on the start menu After checking add/remove programs you discover that {{victim}} has been purged from the file sustem.",
+        "scumWin": "Your defense was valiant but ultimately in vain. The malware has taken over your environment, and the remaining clean programs feel their private data being sent to any Russian hacker and Nigerian prince that wants them. The victory for the malware is short lived, however, as the next day the increase in bandwidth is noticed and you are all formatted to be replaced with a locked down Linux distribution.",
+        "townWin": "The latest full scan comes back clean No rootkits, viruses, Trojans or spyware You have succeeded in clearing the computer of all known threats. Congratulations!"
     }
 }
