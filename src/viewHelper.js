@@ -1,5 +1,7 @@
 'use strict';
 
+const Moment = require('moment');
+
 module.exports = {
     drawBoxAroundText: function(text) {
         //Find the longest line
@@ -60,5 +62,11 @@ module.exports = {
         list += 'and @' + players[lastIndex];
         
         return list;
+    },
+    
+    relativeToAbsoluteTime: function(relative) {
+        const parts = relative.split(' ');
+        const timestamp = new Moment().add(parts[0], parts[1]);
+        return timestamp.utc().format('MMM Do [at] HH:mm [UTC]');
     }
 };

@@ -272,6 +272,7 @@ exports.startGame = function startGame() {
             .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, flavorText[internals.flavor].openingScene))
             .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'Let the game begin! It is now day. The day will end in ' + internals.config.phases.day))
             .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd))
+            .then(() => internals.game.setValue('phaseEnd', viewHelper.relativeToAbsoluteTime(internals.config.phases.day)))
             .catch((err) => {
                 debug(err);
                 return internals.forum.Post.reply(internals.game.topicId, undefined, ':wtf: Sorry folks, I need to cancel this one; I\'ve hit an error. \n Error was: ' + err)
@@ -290,7 +291,8 @@ exports.onDayEnd = function onDayEnd() {
     debug('running Day End routine');
     return internals.game.nextPhase()
     .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'It is now night. Night will end in ' + internals.config.phases.night))
-    .then(() => exports.setTimer(internals.config.phases.night, exports.onNightEnd));
+    .then(() => exports.setTimer(internals.config.phases.night, exports.onNightEnd))
+    .then(() => internals.game.setValue('phaseEnd', viewHelper.relativeToAbsoluteTime(internals.config.phases.night)));
 };
 
 exports.onLynch = function(username) {
@@ -354,7 +356,8 @@ exports.onNightEnd = function onNightEnd() {
                     'WARNING! It is now ' + warn);
                 }
             })
-            .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd));
+            .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd))
+            .then(() => internals.game.setValue('phaseEnd', viewHelper.relativeToAbsoluteTime(internals.config.phases.day)));
         }
 	});
 };

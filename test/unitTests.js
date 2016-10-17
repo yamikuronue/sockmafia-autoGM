@@ -343,7 +343,8 @@ describe('AutoGM', () => {
 				moderators: [],
 				addChat: () => 1,
 				setActive: () => Promise.resolve(),
-				setInactive: () => Promise.resolve()
+				setInactive: () => Promise.resolve(),
+				setValue: () => Promise.resolve()
 			};
 			
 			sandbox.stub(AutoGM, 'sendRolecard', (index, user) => Promise.resolve(fakeForum.User.getByName(user)));
@@ -487,6 +488,16 @@ describe('AutoGM', () => {
 			});
 		});
 		
+		it('Should set the phase end alert', () => {
+			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
+			sandbox.spy(AutoGM.internals.game, 'setValue');
+			sandbox.stub(viewHelper, 'relativeToAbsoluteTime').returns('Jan 1st at 2pm');
+
+			return AutoGM.startGame().then(() => {
+				AutoGM.internals.game.setValue.should.have.been.calledWith('phaseEnd', 'Jan 1st at 2pm');
+			});
+		});
+		
 		it('Should chill for three days', () => {
 			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
 			sandbox.stub(AutoGM, 'setTimer').resolves();
@@ -597,7 +608,8 @@ describe('AutoGM', () => {
 				livePlayers: [],
 				newDay: () => Promise.resolve(),
 				nextPhase: () => Promise.resolve(),
-				topicID: 123
+				topicID: 123,
+				setValue: () => Promise.resolve()
 			};
 		});
 		
@@ -625,6 +637,17 @@ describe('AutoGM', () => {
 				AutoGM.setTimer.firstCall.args[1].should.equal(AutoGM.onNightEnd);
 			});
 		});
+		
+		it('Should set the phase end alert', () => {
+			sandbox.stub(AutoGM, 'setTimer').resolves();
+			sandbox.spy(AutoGM.internals.game, 'setValue');
+			sandbox.stub(viewHelper, 'relativeToAbsoluteTime').returns('Jan 1st at 2pm');
+
+			
+			return AutoGM.onDayEnd().then(() => {
+				AutoGM.internals.game.setValue.should.have.been.calledWith('phaseEnd', 'Jan 1st at 2pm');
+			});
+		});
 	});
 
 	describe('onNightEnd', () => {
@@ -648,6 +671,7 @@ describe('AutoGM', () => {
 				killPlayer: () => Promise.resolve(),
 				newDay: () => Promise.resolve(),
 				nextPhase: () => Promise.resolve(),
+				setValue: () => Promise.resolve(),
 				topicID: 123
 			};
 			
@@ -716,6 +740,18 @@ describe('AutoGM', () => {
 				AutoGM.setTimer.should.have.been.called;
 				AutoGM.setTimer.firstCall.args[0].should.equal(expected);
 				AutoGM.setTimer.firstCall.args[1].should.equal(AutoGM.onDayEnd);
+			});
+		});
+		
+		it('Should set the phase end alert', () => {
+			sandbox.stub(AutoGM, 'checkWin').returns(false);
+			sandbox.stub(AutoGM, 'setTimer').resolves();
+			sandbox.stub(viewHelper, 'relativeToAbsoluteTime').returns('Jan 1st at 2pm');
+			
+			sandbox.spy(AutoGM.internals.game, 'setValue');
+			
+			return AutoGM.onNightEnd().then(() => {
+				AutoGM.internals.game.setValue.should.have.been.calledWith('phaseEnd', 'Jan 1st at 2pm');
 			});
 		});
 
@@ -810,7 +846,7 @@ describe('AutoGM', () => {
 		
 		it('Should call onDayEnd if the game is not over', () => {
 			sandbox.stub(AutoGM, 'checkWin').returns(false);
-			sandbox.spy(AutoGM, 'onDayEnd');
+			sandbox.stub(AutoGM, 'onDayEnd').resolves();
 			return AutoGM.onLynch().then(() => {
 				AutoGM.onDayEnd.should.have.been.called;
 			});
@@ -955,6 +991,7 @@ describe('AutoGM', () => {
 			AutoGM.checkMylo().should.equal(false);
 		});
 	});
+	
 	describe('setTimer', () => {
 		let clock;
 		
@@ -1283,5 +1320,22 @@ describe('viewHelper', () => {
 		it('should handle three names', () => viewHelper.makeList(['one', 'two', 'three']).should.equal('@one, @two, and @three'));
 		it('should handle invalid input', () => viewHelper.makeList(false).should.equal('nobody'));
 		it('should handle invalid input', () => viewHelper.makeList('banana').should.equal('nobody'));
+	});
+	
+	describe('relative to absolute', () => {
+		let clock;
+		
+		beforeEach(() => {
+			//Set Date to unix epoch (0)
+			clock = sinon.useFakeTimers();
+		});
+		
+		afterEach(() => {
+			clock.restore();
+		});
+		
+		it('should work for minutes', () => viewHelper.relativeToAbsoluteTime('1 minute').should.equal('Jan 1st at 00:01 UTC'));
+		it('should work for hours', () => viewHelper.relativeToAbsoluteTime('1 hour').should.equal('Jan 1st at 01:00 UTC'));
+		it('should work for days', () => viewHelper.relativeToAbsoluteTime('1 day').should.equal('Jan 2nd at 00:00 UTC'));
 	});
 });
