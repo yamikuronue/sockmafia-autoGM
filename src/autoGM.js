@@ -310,7 +310,6 @@ exports.onLynch = function(username) {
     });
 };
 
-
 function getWinMsg(won) {
     const wintype = won.toLowerCase() + 'Win';
     let winmsg = flavorText[internals.flavor][wintype];
@@ -341,12 +340,20 @@ exports.onNightEnd = function onNightEnd() {
         }
     }).then(() => {
         const won = exports.checkWin();
+        const warn = exports.checkMylo();
         if (won) {
             return internals.forum.Post.reply(internals.game.topicId, undefined, getWinMsg(won))
                 .then(() => exports.endGame());
         } else {
             return internals.game.newDay()
-            .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'It is now day. Day will end in ' + internals.config.phases.day))
+            .then(() => internals.forum.Post.reply(internals.game.topicId, undefined,
+                        'It is now day. Day will end in ' + internals.config.phases.day))
+            .then(() => {
+                if (warn) {
+                    return internals.forum.Post.reply(internals.game.topicId, undefined,
+                    'WARNING! It is now ' + warn);
+                }
+            })
             .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd));
         }
 	});
@@ -354,26 +361,50 @@ exports.onNightEnd = function onNightEnd() {
 
 exports.checkWin = function() {
     debug('Checking for win');
-    let scum = 0;
-    let town = 0;
-
-    const players = internals.game.livePlayers;
-    for (let i = 0; i < players.length; i++ ) {
-        if (internals.scum.indexOf(players[i].username) > -1) {
-            scum++;
-        } else {
-            town++;
-        }
-    }
+    const count = getPlayerCounts();
     
-    if (scum >= town) {
+    if (count.scum >= count.town) {
         return 'Scum';
     }
     
-    if (scum === 0) {
+    if (count.scum === 0) {
         return 'Town';
     }
     
+    return false;
+};
+
+function getPlayerCounts() {
+    const counts = {
+        scum: 0,
+        town: 0
+    };
+    
+     const players = internals.game.livePlayers;
+    for (let i = 0; i < players.length; i++ ) {
+        if (internals.scum.indexOf(players[i].username) > -1) {
+            counts.scum++;
+        } else {
+            counts.town++;
+        }
+    }
+    
+    return counts;
+}
+
+
+exports.checkMylo = function() {
+    debug('Checking for myLo/lyLo');
+    const count = getPlayerCounts();
+    
+    if (count.scum + 1 === count.town) {
+        return 'LyLo';
+    }
+    
+    if (count.scum + 2 === count.town) {
+        return 'MyLo';
+    }
+    debug('Game count: ' + count);
     return false;
 };
 
