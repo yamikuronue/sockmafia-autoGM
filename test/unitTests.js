@@ -888,6 +888,73 @@ describe('AutoGM', () => {
 		});
 	});
 
+	describe('checkMylo', () => {
+		beforeEach(() => {
+			AutoGM.internals.game = {
+				livePlayers: [],
+				newDay: () => Promise.resolve(),
+				nextPhase: () => Promise.resolve(),
+				topicID: 123
+			};
+		});
+		
+		it('Should return LyLo when there is one more town than scum', () => {
+			AutoGM.internals.game.livePlayers = [{
+				username: 'scum1'
+			},
+			{
+				username: 'town1'
+			},
+			{
+				username: 'town2'
+			}];
+			
+			AutoGM.internals.scum = ['scum1'];
+			
+			AutoGM.checkMylo().should.equal('LyLo');
+		});
+		
+		it('Should return MyLo when there is two more town than scum', () => {
+			AutoGM.internals.game.livePlayers = [{
+				username: 'scum1'
+			},
+			{
+				username: 'town1'
+			},
+			{
+				username: 'town2'
+			},
+			{
+				username: 'town3'
+			}];
+			
+			AutoGM.internals.scum = ['scum1'];
+			
+			AutoGM.checkMylo().should.equal('MyLo');
+		});
+		
+		it('Should return false when there is three more town than scum', () => {
+			AutoGM.internals.game.livePlayers = [{
+				username: 'scum1'
+			},
+			{
+				username: 'town1'
+			},
+			{
+				username: 'town2'
+			},
+			{
+				username: 'town3'
+			},
+			{
+				username: 'town4'
+			}];
+			
+			AutoGM.internals.scum = ['scum1'];
+			
+			AutoGM.checkMylo().should.equal(false);
+		});
+	});
 	describe('setTimer', () => {
 		let clock;
 		
