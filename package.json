@@ -7,7 +7,9 @@
     "test": "test"
   },
   "scripts": {
-    "test": "eslint . && istanbul cover node_modules/mocha/bin/_mocha -- --recursive -R dot ./test/unitTests.js && mocha -R dot ./test/unitTests.js"
+    "test": "eslint . && istanbul cover node_modules/mocha/bin/_mocha -- --recursive -R dot ./test/unitTests.js && mocha -R dot ./test/unitTests.js",
+    "publish-please": "publish-please",
+    "prepublish": "publish-please guard"
   },
   "repository": {
     "type": "git",
@@ -37,6 +39,7 @@
     "mocha": "^3.0.2",
     "sinon": "^1.17.5",
     "sinon-as-promised": "^4.0.2",
-    "sinon-chai": "^2.8.0"
+    "sinon-chai": "^2.8.0",
+    "publish-please": "^2.2.0"
   }
 }
