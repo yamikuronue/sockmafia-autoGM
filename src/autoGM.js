@@ -173,7 +173,7 @@ function getRoleCard(username) {
     if (internals.scum.indexOf(username) > -1) {
         message = `You are a ${flavorText[internals.flavor].scum}!\n` +
             'Every night, you and your companions \nmay choose to kill one person.\n' +
-            `You win when the number of scum players \nis equal to or greater than the number of town players`;
+            'You win when the number of scum players \nis equal to or greater than the number of town players';
     } else {
         message = `You are a ${flavorText[internals.flavor].town}!\n` +
             'Your only ability is the daytime vote. \nChoose wisely!\n' +

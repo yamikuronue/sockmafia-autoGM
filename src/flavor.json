@@ -47,10 +47,19 @@
     "tron": {
         "scum": "Malicious program",
         "town": "Anti virus",
-        "openingScene": "Your computer was once a safe place. Owned by a paranoid programmer, with adblock, noscript and very conservative browsing habits, your job protecting the computer was an easy one of scanning the occasional download Now, though, your haven has been handed down to his teenage son after an upgrade You have been subjected to porn sites, warez, torrents and phishing sites It's time to begin the fight back and eliminate the male are that has infiltrated your ranks",
+        "openingScene": "Your computer was once a safe place. Owned by a paranoid programmer, with adblock, noscript and very conservative browsing habits, your job protecting the computer was an easy one of scanning the occasional download Now, though, your haven has been handed down to his teenage son after an upgrade You have been subjected to porn sites, warez, torrents and phishing sites It's time to begin the fight back and eliminate the malware that has infiltrated your ranks",
         "lynch": "The quarantine procedure begins {{victim}} is moved byte by byte into the bit bucket never to be seen again Every file association, registry entry and shortcut is soon obliterated and {{victim}} is no more.",
         "kill": "As you wake from sleep you notice a missing entry on the start menu After checking add/remove programs you discover that {{victim}} has been purged from the file sustem.",
         "scumWin": "Your defense was valiant but ultimately in vain. The malware has taken over your environment, and the remaining clean programs feel their private data being sent to any Russian hacker and Nigerian prince that wants them. The victory for the malware is short lived, however, as the next day the increase in bandwidth is noticed and you are all formatted to be replaced with a locked down Linux distribution.",
         "townWin": "The latest full scan comes back clean No rootkits, viruses, Trojans or spyware You have succeeded in clearing the computer of all known threats. Congratulations!"
+    },
+    "forum": {
+        "scum": "Troll",
+        "town": "Forum Regular",
+        "openingScene": "You like to frequent a forum - a corner of the internet where you and like-minded individuals often discuss, share and argue about this and that. Lately, however, the atmosphere in the forum began to change: discussions were becoming heated and arguments - questionable. Just yesterday, the forum's most beloved member has had enough and rage-quit after a particularly vile flamewar! Realizing this is the work of some clever trolls, you'll need to figure out who they are and petition the mods to ban them before the community is lost for good.",
+        "lynch": "Much as they try, the mods can no longer ignore the votes cast against {{victim}}. A junior mod decides to carefully go over {{victim}}'s posts to seek evidence of trolling, while a more senior mod just bans the user permanently.",
+        "kill": "You check for new posts in a thread you're interested in. You quickly find that the level-headed discussion that took place here yesterday devolved into petty name-calling between {{victim}} and several other members. Near the end of the thread, however, {{victim}} made the mistake of tossing a profanity against the entire forum - a passing-by mod took it as a personal attack and banned him permanently.",
+        "scumWin": "What was once clever manipulation tactics gradually descends into puerile nonsense but even though the identity of the remaining trolls becomes obvious - it's far too late: all the remaining regulars and mods have already left in disgust. In the end, the admin bans the trolls, but the trolls have already won - only the admin remains in the forum",
+        "townWin": "With the trolls gone, you go back to having more productive discussions. With time, you invite back those who quit due to the trolling and even manage to convince the mods to unban those who fell victim to it! The trolls leave, knowing not to bother your community ever again."
     }
 }
