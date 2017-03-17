@@ -154,6 +154,11 @@ exports.createGame = function() {
     pickFlavor();
     debug('Flavor is: ' + internals.flavor);
     
+    if (!SockMafia.internals.dao) {
+        debug('ERROR! DAO ISSUE!');
+        debug(SockMafia.internals);
+    }
+    
     return internals.forum.Category.get(internals.config.category).then((category) => category.addTopic(threadTitle, threadOP))
         .then((thread) => {
             threadID = thread.id;
