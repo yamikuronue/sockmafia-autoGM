@@ -9,7 +9,7 @@ const Handlebars = require('handlebars');
 
 const viewHelper = require('./viewHelper');
 
-let Forum, game;
+let Forum, game, mafia;
 
 const internals = {
     forum: Forum,
@@ -44,6 +44,7 @@ exports.activate = function activate() {
     debug('Activating');
     internals.timer.handle = setInterval(timer, 10);
     internals.forum.on('mafia:playerLynched', exports.onLynch);
+    mafia.activate();
     return exports.init();
 };
 
@@ -94,7 +95,7 @@ exports.plugin = function plugin(forum, config) {
     }
     
     //Set up dependency
-    SockMafia.plugin(forum, {});
+    mafia = SockMafia.plugin(forum, {});
     
     return {
 		activate: exports.activate,
