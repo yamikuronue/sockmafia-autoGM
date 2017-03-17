@@ -108,6 +108,9 @@ describe('AutoGM', () => {
 		
 		beforeEach(() => {
 			sandbox.stub(AutoGM, 'init').resolves();
+			AutoGM.internals.mafia = {
+				activate: () => 1
+			};
 		});
 		
 		afterEach(() => {
@@ -1006,6 +1009,9 @@ describe('AutoGM', () => {
 			sandbox.stub(AutoGM, 'init').resolves();
 			sandbox.stub(AutoGM, 'save').resolves();
 			clock = sinon.useFakeTimers();
+			AutoGM.internals.mafia = {
+				activate: () => 1
+			};
 			return AutoGM.activate();
 		});
 		
