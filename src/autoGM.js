@@ -93,6 +93,9 @@ exports.plugin = function plugin(forum, config) {
         internals.config.minPlayers = 2;
     }
     
+    //Set up dependency
+    SockMafia.plugin(forum, {});
+    
     return {
 		activate: exports.activate,
 		deactivate: exports.deactivate
@@ -148,7 +151,6 @@ exports.createGame = function() {
     let threadID;
     const threadTitle = 'Auto-generated Mafia Game Thread';
     const threadOP = 'This is an automatic mafia thread. This will be the main game thread for the game';
-    const dao = SockMafia.getDao();
 
     debug('Creating game');
         
@@ -165,7 +167,7 @@ exports.createGame = function() {
             threadID = thread.id;
             return thread.watch();
         })
-        .then(() => dao.createGame(threadID, 'autoGame-' + threadID, false))
+        .then(() => SockMafia.internals.dao.createGame(threadID, 'autoGame-' + threadID, false))
         .then((g) => {
             internals.game = g;
         })
