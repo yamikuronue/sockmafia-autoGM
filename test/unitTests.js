@@ -1344,4 +1344,24 @@ describe('viewHelper', () => {
 		it('should work for hours', () => viewHelper.relativeToAbsoluteTime('1 hour').should.equal('Jan 1st at 01:00 UTC'));
 		it('should work for days', () => viewHelper.relativeToAbsoluteTime('1 day').should.equal('Jan 2nd at 00:00 UTC'));
 	});
+
+	describe('globalDateTimeLink', () => {
+		//https://www.timeanddate.com/worldclock/fixedtime.html?year=&month=&day=&hour=&min=&sec=0
+		let clock;
+		
+		beforeEach(() => {
+			//Set Date to unix epoch (0)
+			clock = sinon.useFakeTimers();
+		});
+		
+		afterEach(() => {
+			clock.restore();
+		});
+		
+		it('should return a string', () => viewHelper.getDateTimeLink(new Moment()).should.be.a('string'));
+		it('should contain a hyperlink', () => viewHelper.getDateTimeLink(new Moment()).should.contain('https://www.timeanddate.com/worldclock/fixedtime.html'));
+		it('should return the date passed in', () => viewHelper.getDateTimeLink(new Moment()).should.equal('https://www.timeanddate.com/worldclock/fixedtime.html?year=1970&month=Jan&day=1&hour=0&min=0&sec=0'));
+		it('should return the date passed in 2', () => viewHelper.getDateTimeLink(new Moment().add(7, 'days')).should.equal('https://www.timeanddate.com/worldclock/fixedtime.html?year=1970&month=Jan&day=8&hour=0&min=0&sec=0'));
+	});
+	
 });
