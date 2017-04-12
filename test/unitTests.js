@@ -97,14 +97,20 @@ describe('AutoGM', () => {
 		
 		it('should enable locking if locking is supported', () => {
 			sandbox.stub(fakeForum, 'supports').withArgs('Topics.Lock').returns(true);
-			AutoGM.plugin(fakeForum, fakeConfig);
-			AutoGM.internals.config.lockThreads.should.equal(true);
+			AutoGM.plugin(fakeForum, {
+				category: 12,
+				lockThreads: true
+			});
+			return AutoGM.internals.config.lockThreads.should.equal(true);
 		});
 		
 		it('should disable locking if locking is not supported', () => {
 			sandbox.stub(fakeForum, 'supports').withArgs('Topics.Lock').returns(false);
-			AutoGM.plugin(fakeForum, fakeConfig);
-			AutoGM.internals.config.lockThreads.should.equal(false);
+			AutoGM.plugin(fakeForum, {
+				category: 12,
+				lockThreads: true
+			});
+			return AutoGM.internals.config.lockThreads.should.equal(false);
 		});
 
 		it('should disable locking if locking is not requested', () => {
@@ -550,6 +556,9 @@ describe('AutoGM', () => {
 		
 		beforeEach(() => {
 			AutoGM.internals.config = AutoGM.defaultConfig;
+			AutoGM.internals.game = {
+				topicId: 1234
+			};
 			sandbox.stub(AutoGM, 'deactivate').resolves();
 			sandbox.stub(AutoGM, 'createGame').resolves();
 			AutoGM.internals.forum = {
@@ -559,24 +568,24 @@ describe('AutoGM', () => {
 			};
 		});
 		
-		it.only('should lock the thread if asked', () => {
+		it('should lock the thread if asked', () => {
 			sandbox.spy(fakeTopic, 'lock');
 			return AutoGM.endGame().then(() => fakeTopic.lock.should.have.been.called);
 		});
 		
 		it('should trash the game', () => {
 			AutoGM.internals.game = 'game object goes here';
-			return AutoGM.endGame().then(() => should.not.exist(AutoGM.internals.game));
+			return AutoGM.endGame().then(() => chai.expect(AutoGM.internals.game).to.be.undefined);
 		});
 		
 		it('should deactivate if not in loop mode', () => {
 			AutoGM.internals.config.loop = false;
-			return AutoGM.endGame().then(() => AutoGM.deactivate().should.have.been.called);
+			return AutoGM.endGame().then(() => AutoGM.deactivate.should.have.been.called);
 		});
 		
 		it('should start a new game if in loop mode', () => {
 			AutoGM.internals.config.loop = true;
-			return AutoGM.endGame().then(() => AutoGM.createGame().should.have.been.called);
+			return AutoGM.endGame().then(() => AutoGM.createGame.should.have.been.called);
 		});
 	});
 	

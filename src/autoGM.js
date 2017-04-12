@@ -57,8 +57,12 @@ exports.deactivate = function deactivate() {
 };
 
 exports.endGame = function endGame() {
-    internals.game = undefined;
-    return rimrafPromise('autoGMdata').then(() => {
+    
+    return internals.forum.Topic.get(internals.game.topicId)
+    .then((topic) => topic.lock())
+    .then(() => rimrafPromise('autoGMdata'))
+    .then(() => {
+        internals.game = undefined;
         if (internals.config.loop) {
             return exports.createGame();
         } else {
@@ -95,8 +99,17 @@ exports.plugin = function plugin(forum, config) {
         internals.config.minPlayers = 2;
     }
     
+    //Handle locking not being supported
+    if (config.lockThreads) {
+        if (!forum.supports('Topics.Lock')) {
+           // debug('Disabling lock feature due to lack of support');
+            internals.config.lockThreads = false;
+        }
+    }
+    
     //Set up dependency
     internals.mafia = SockMafia.plugin(forum, {});
+    
     
     return {
 		activate: exports.activate,
