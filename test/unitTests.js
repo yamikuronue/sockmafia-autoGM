@@ -38,13 +38,15 @@ describe('AutoGM', () => {
 	describe('plugin', () => {
 		const fakeConfig = {
 			category: 12,
-			minPlayers: 7
+			minPlayers: 7,
+			lockThreads: true
 		};
 
 		const fakeForum = {
 			username: 'abot',
 			on: () => 1,
-			removeListener: () => 1
+			removeListener: () => 1,
+			supports: () => false
 		};
 		
 		it('must return a plugin object', () => {
@@ -91,6 +93,33 @@ describe('AutoGM', () => {
 			
 			AutoGM.plugin(fakeForum, configWithMinimalPlayers);
 			AutoGM.internals.config.minPlayers.should.equal(2);
+		});
+		
+		it('should enable locking if locking is supported', () => {
+			sandbox.stub(fakeForum, 'supports').withArgs('Topics.Lock').returns(true);
+			AutoGM.plugin(fakeForum, {
+				category: 12,
+				lockThreads: true
+			});
+			return AutoGM.internals.config.lockThreads.should.equal(true);
+		});
+		
+		it('should disable locking if locking is not supported', () => {
+			sandbox.stub(fakeForum, 'supports').withArgs('Topics.Lock').returns(false);
+			AutoGM.plugin(fakeForum, {
+				category: 12,
+				lockThreads: true
+			});
+			return AutoGM.internals.config.lockThreads.should.equal(false);
+		});
+
+		it('should disable locking if locking is not requested', () => {
+			sandbox.stub(fakeForum, 'supports').withArgs('Topics.Lock').returns(true);
+			AutoGM.plugin(fakeForum, {
+				category: 12,
+				lockThreads: false
+			});
+			return AutoGM.internals.config.lockThreads.should.equal(false);
 		});
 	});
 
@@ -328,6 +357,11 @@ describe('AutoGM', () => {
 						username: name
 					})
 				},
+				Topic: {
+					get: () => Promise.resolve({
+						lock: () => Promise.resolve()
+					})
+				},
 				removeListener: () => Promise.resolve()
 			};
 			
@@ -515,25 +549,43 @@ describe('AutoGM', () => {
 	});
 	
 	describe('endGame', () => {
+		const fakeTopic = {
+			lock: () => Promise.resolve(),
+			unlock: () => Promise.resolve()
+		};
+		
 		beforeEach(() => {
 			AutoGM.internals.config = AutoGM.defaultConfig;
+			AutoGM.internals.game = {
+				topicId: 1234
+			};
 			sandbox.stub(AutoGM, 'deactivate').resolves();
 			sandbox.stub(AutoGM, 'createGame').resolves();
+			AutoGM.internals.forum = {
+				Topic: {
+					get: () => Promise.resolve(fakeTopic)
+				}
+			};
+		});
+		
+		it('should lock the thread if asked', () => {
+			sandbox.spy(fakeTopic, 'lock');
+			return AutoGM.endGame().then(() => fakeTopic.lock.should.have.been.called);
 		});
 		
 		it('should trash the game', () => {
 			AutoGM.internals.game = 'game object goes here';
-			AutoGM.endGame().then(() => should.not.exist(AutoGM.internals.game));
+			return AutoGM.endGame().then(() => chai.expect(AutoGM.internals.game).to.be.undefined);
 		});
 		
 		it('should deactivate if not in loop mode', () => {
 			AutoGM.internals.config.loop = false;
-			AutoGM.endGame().then(() => AutoGM.deactivate().should.have.been.called);
+			return AutoGM.endGame().then(() => AutoGM.deactivate.should.have.been.called);
 		});
 		
 		it('should start a new game if in loop mode', () => {
 			AutoGM.internals.config.loop = true;
-			AutoGM.endGame().then(() => AutoGM.createGame().should.have.been.called);
+			return AutoGM.endGame().then(() => AutoGM.createGame.should.have.been.called);
 		});
 	});
 	
