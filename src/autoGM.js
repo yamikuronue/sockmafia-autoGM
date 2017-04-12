@@ -318,7 +318,6 @@ exports.onLynch = function(username) {
         } else {
             return exports.onDayEnd();
         }
-            
     });
 };
 
@@ -341,6 +340,8 @@ function getWinMsg(won) {
 exports.onNightEnd = function onNightEnd() {
     debug('running Night End routine');
     const action = internals.game.getActionOfType('target', null, 'scum', null, false);
+    debug('action was: ');
+    debug(action);
 	
 	return Promise.resolve().then(() => {
         if (action) {
