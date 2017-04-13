@@ -174,7 +174,7 @@ exports.createGame = function() {
             internals.game = g;
         })
         .then(() => internals.game.addModerator(internals.myName))
-        .then(() => internals.forum.Post.reply(threadID, undefined, 'Signups are now open!\n To join the game, please type `!join`.\n The game will start in ' + internals.config.phases.init))
+        .then(() => internals.forum.Post.reply(threadID, undefined, 'Signups are now open!\n To join the game, please type `!join`.\n The game will start on ' + formatTimeLink(internals.config.phases.init)))
         .then(() => exports.setTimer(internals.config.phases.init, exports.startGame));
 };
 
@@ -231,6 +231,12 @@ exports.postFlip = function postFlip(username, type) {
     return internals.forum.Post.reply(internals.game.topicId, undefined, message);
 };
 
+function formatTimeLink(offset) {
+    const timeString = viewHelper.relativeToAbsoluteTime(offset);
+    const time = Moment(timeString, 'MMM Do [at] HH:mm [UTC]');
+    return `<a href="${viewHelper.getDateTimeLink(time)}">${timeString}</a>`;
+}
+
 exports.startGame = function startGame() {
     debug('Running game start routine');
     const players = internals.game.livePlayers;
@@ -280,9 +286,9 @@ exports.startGame = function startGame() {
                 internals.game.addChat(chatroom.id);
             })
             .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, flavorText[internals.flavor].openingScene))
-            .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'Let the game begin! It is now day. The day will end in ' + internals.config.phases.day))
+            .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'Let the game begin! It is now day. The day will end on ' +  formatTimeLink(internals.config.phases.day)))
             .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd))
-            .then(() => internals.game.setValue('phaseEnd', viewHelper.relativeToAbsoluteTime(internals.config.phases.day)))
+            .then(() => internals.game.setValue('phaseEnd', formatTimeLink(internals.config.phases.day)))
             .catch((err) => {
                 debug(err);
                 return internals.forum.Post.reply(internals.game.topicId, undefined, ':wtf: Sorry folks, I need to cancel this one; I\'ve hit an error. \n Error was: ' + err)
@@ -300,9 +306,9 @@ exports.startGame = function startGame() {
 exports.onDayEnd = function onDayEnd() {
     debug('running Day End routine');
     return internals.game.nextPhase()
-    .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'It is now night. Night will end in ' + internals.config.phases.night))
+    .then(() => internals.forum.Post.reply(internals.game.topicId, undefined, 'It is now night. Night will end on ' + formatTimeLink(internals.config.phases.night)))
     .then(() => exports.setTimer(internals.config.phases.night, exports.onNightEnd))
-    .then(() => internals.game.setValue('phaseEnd', viewHelper.relativeToAbsoluteTime(internals.config.phases.night)));
+    .then(() => internals.game.setValue('phaseEnd', formatTimeLink(internals.config.phases.night)));
 };
 
 exports.onLynch = function(username) {
@@ -359,7 +365,7 @@ exports.onNightEnd = function onNightEnd() {
         } else {
             return internals.game.newDay()
             .then(() => internals.forum.Post.reply(internals.game.topicId, undefined,
-                        'It is now day. Day will end in ' + internals.config.phases.day))
+                        'It is now day. Day will end on ' +  formatTimeLink(internals.config.phases.day)))
             .then(() => {
                 if (warn) {
                     return internals.forum.Post.reply(internals.game.topicId, undefined,
@@ -367,7 +373,7 @@ exports.onNightEnd = function onNightEnd() {
                 }
             })
             .then(() => exports.setTimer(internals.config.phases.day, exports.onDayEnd))
-            .then(() => internals.game.setValue('phaseEnd', viewHelper.relativeToAbsoluteTime(internals.config.phases.day)));
+            .then(() => internals.game.setValue('phaseEnd', formatTimeLink(internals.config.phases.day)));
         }
 	});
 };

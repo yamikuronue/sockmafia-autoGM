@@ -495,9 +495,10 @@ describe('AutoGM', () => {
 			AutoGM.internals.game.livePlayers = [player('one'), player('two'), player('three'), player('four'), player('five'), player('six')];
 			sandbox.spy(AutoGM.internals.game, 'setValue');
 			sandbox.stub(viewHelper, 'relativeToAbsoluteTime').returns('Jan 1st at 2pm');
+			sandbox.stub(viewHelper, 'getDateTimeLink').returns('a_hyperlink');
 
 			return AutoGM.startGame().then(() => {
-				AutoGM.internals.game.setValue.should.have.been.calledWith('phaseEnd', 'Jan 1st at 2pm');
+				AutoGM.internals.game.setValue.should.have.been.calledWith('phaseEnd', '<a href="a_hyperlink">Jan 1st at 2pm</a>');
 			});
 		});
 		
@@ -645,10 +646,11 @@ describe('AutoGM', () => {
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			sandbox.spy(AutoGM.internals.game, 'setValue');
 			sandbox.stub(viewHelper, 'relativeToAbsoluteTime').returns('Jan 1st at 2pm');
+			sandbox.stub(viewHelper, 'getDateTimeLink').returns('a_hyperlink');
 
 			
 			return AutoGM.onDayEnd().then(() => {
-				AutoGM.internals.game.setValue.should.have.been.calledWith('phaseEnd', 'Jan 1st at 2pm');
+				AutoGM.internals.game.setValue.should.have.been.calledWith('phaseEnd', '<a href="a_hyperlink">Jan 1st at 2pm</a>');
 			});
 		});
 	});
@@ -750,11 +752,12 @@ describe('AutoGM', () => {
 			sandbox.stub(AutoGM, 'checkWin').returns(false);
 			sandbox.stub(AutoGM, 'setTimer').resolves();
 			sandbox.stub(viewHelper, 'relativeToAbsoluteTime').returns('Jan 1st at 2pm');
+			sandbox.stub(viewHelper, 'getDateTimeLink').returns('a_hyperlink');
 			
 			sandbox.spy(AutoGM.internals.game, 'setValue');
 			
 			return AutoGM.onNightEnd().then(() => {
-				AutoGM.internals.game.setValue.should.have.been.calledWith('phaseEnd', 'Jan 1st at 2pm');
+				AutoGM.internals.game.setValue.should.have.been.calledWith('phaseEnd', '<a href="a_hyperlink">Jan 1st at 2pm</a>');
 			});
 		});
 
