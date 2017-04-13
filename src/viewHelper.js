@@ -68,5 +68,9 @@ module.exports = {
         const parts = relative.split(' ');
         const timestamp = new Moment().add(parts[0], parts[1]);
         return timestamp.utc().format('MMM Do [at] HH:mm [UTC]');
+    },
+    
+    getDateTimeLink: function(time) {
+        return `https://www.timeanddate.com/worldclock/fixedtime.html?year=${time.year()}&month=${time.format('MMM')}&day=${time.date()}&hour=${time.hour()}&min=${time.minutes()}&sec=${time.seconds()}`;
     }
 };

@@ -1,6 +1,6 @@
 {
   "name": "sockmafia-autogm",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Auto gamemaster for sockmafia",
   "main": "src/autoGM.js",
   "directories": {
@@ -26,7 +26,7 @@
     "handlebars": "^4.0.5",
     "moment": "^2.14.1",
     "rimraf-promise": "^2.0.0",
-    "sockmafia": "sockdrawer/SockMafia"
+    "sockmafia": ">=4.0.2"
   },
   "peerDependencies": {
     "sockbot": "^6.2.0"
